@@ -15,6 +15,25 @@ from core.utils import datetime_to_timestamp
 from sdk import SDK
 
 
+class TestDispatcherTestCase(unittest.TestCase):
+    def setUp(self):
+        self.project_id = 'joivy-dev5'
+        self.sdk = SDK(project_id=self.project_id, auto=False)
+
+    def test_init(self):
+        dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=True)
+
+        self.assertEqual(dispatcher.sdk, self.sdk)
+        self.assertTrue(dispatcher.auto)
+
+    def test_setters(self):
+        dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=True)
+        self.assertTrue(dispatcher.auto)
+
+        dispatcher.auto = False
+        self.assertFalse(dispatcher.auto)
+
+
 class TestTraceCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'

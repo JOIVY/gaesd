@@ -37,6 +37,7 @@ class RestDispatcher(Dispatcher):
             # Dispatch when called:
             self._cache.append(trace)
 
+
 class SimpleRestDispatcher(RestDispatcher):
     def _dispatch(self, traces):
         pass
