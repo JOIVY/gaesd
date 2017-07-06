@@ -3,17 +3,23 @@
 
 import threading
 
-from .trace import Trace
+from core.dispatchers.rest_dispatcher import SimpleRestDispatcher
+from core.trace import Trace
 
 
 class SDK(object):
     _data = threading.local()
 
-    def __init__(self, project_id):
+    def __init__(self, project_id, dispatcher=SimpleRestDispatcher, auto=True):
         self._project_id = project_id
+        self._dispatcher = dispatcher(sdk=self, auto=auto)
 
-        if not hasattr(SDK._data, 'stack'):
-            SDK._data.traces = []
+        if not hasattr(SDK._data, 'traces'):
+            self.clear()
+
+    @classmethod
+    def clear(cls):
+        cls._data.traces = []
 
     @property
     def project_id(self):
@@ -31,7 +37,7 @@ class SDK(object):
         if traces:
             return traces[-1]
 
-        return self.trace
+        return self.trace()
 
     @property
     def _trace_ids(self):
@@ -63,6 +69,9 @@ class SDK(object):
         :rtype: core.span.Span
         """
         trace = self.current_trace
-        parent_span = trace.spans[-1]
+        parent_span = trace.spans[-1] if trace.spans else None
         span = trace.span(parent_span=parent_span)
         return span
+
+    def patch_trace(self, trace):
+        return self._dispatcher.patchTraces(trace)

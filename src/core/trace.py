@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
-import itertools
 import json
 import uuid
 
-from src import Span
+from .span import Span
 
 
 class Trace(object):
     def __init__(self, sdk, trace_id=None):
         self._sdk = sdk
         self._spans = []
-        self._trace_id = trace_id or uuid.uuid4().hex
-        self._span_ids = itertools.count(1)
+        self._trace_id = trace_id if trace_id is not None else self.new_trace_id
+
+    @staticmethod
+    def new_trace_id():
+        return uuid.uuid4().hex
 
     @property
     def trace_id(self):
@@ -32,14 +34,14 @@ class Trace(object):
         return self.sdk.project_id
 
     def span(self, parent_span=None):
-        span = Span(self, self._span_ids.next(), parent_span)
+        span = Span(self, Span.new_span_id(), parent_span)
         self._spans.append(span)
         return span
 
     def export(self):
         return {
-            'projectId': self.project_id,
-            'traceId': self.trace_id,
+            'projectId': str(self.project_id),
+            'traceId': str(self.trace_id),
             'spans': [i for i in [span.json for span in self.spans] if i],
         }
 
@@ -52,4 +54,7 @@ class Trace(object):
 
     def __exit__(self, t, val, tb):
         # TODO: Fire off this `Trace and it's Spans` to the stack-driver API:
-        pass
+        self.end()
+
+    def end(self):
+        self.sdk.patch_trace(self)

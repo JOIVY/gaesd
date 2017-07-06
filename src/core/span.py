@@ -2,21 +2,39 @@
 # -*- coding: latin-1 -*-
 
 import datetime
+import itertools
 import json
+
+from enum import Enum, unique
+
+from core.utils import datetime_to_timestamp
+
+
+@unique
+class SpanKind(Enum):
+    unspecified = 'SPAN_KIND_UNSPECIFIED'
+    server = 'RPC_SERVER'
+    client = 'RPC_CLIENT'
 
 
 class Span(object):
-    def __init__(self, trace, span_id, parent_span=None, name='', span_kind=None,
-            start_time=None, end_time=None, labels=None):
+    _span_ids = itertools.count(1)
+
+    def __init__(self, trace, span_id, parent_span=None, name='', span_kind=None, start_time=None,
+            end_time=None, labels=None):
         self._trace = trace
         self._span_id = span_id
         self._parent_span = parent_span
 
         self._name = name
-        self._span_kind = span_kind
         self._start_time = start_time
         self._end_time = end_time
+        self.span_kind = SpanKind(span_kind) if span_kind else SpanKind.unspecified
         self.labels = labels or []
+
+    @classmethod
+    def new_span_id(cls):
+        return cls._span_ids.next()
 
     @property
     def trace(self):
@@ -57,19 +75,19 @@ class Span(object):
     @span_kind.setter
     def span_kind(self, span_kind):
         # TODO: Validate enum `span_kind`:
-        self._span_kind = span_kind
+        self._span_kind = SpanKind(span_kind) if span_kind else SpanKind.unspecified
 
     def export(self):
-        # TODO: FIXME: Implement this:
+        # TODO: FIXME: Finish this properly:
 
         parent_span_id = str(self.parent_span.span_id) if self.parent_span else None
 
         return {
             'spanId': self.span_id,
-            "kind": self.span_kind,
+            "kind": self.span_kind.value,
             "name": self.name,
-            "startTime": self.start_time,
-            "endTime": self.end_time,
+            "startTime": datetime_to_timestamp(self.start_time),
+            "endTime": datetime_to_timestamp(self.end_time),
             "parentSpanId": parent_span_id,
             "labels": self.labels,
         }

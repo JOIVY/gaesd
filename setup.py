@@ -6,7 +6,7 @@ from distutils.core import setup
 setup(
     name='StackDriver-SDK',
     version='0.1',
-    packages=['core'],
+    packages=['src'],
     url='',
     license='',
     author='Francis Horsman',
