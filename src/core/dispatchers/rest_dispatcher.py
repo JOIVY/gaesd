@@ -29,14 +29,6 @@ class RestDispatcher(Dispatcher):
         """
         raise NotImplementedError
 
-    def patchTraces(self, trace):
-        if self.auto:
-            # Dispatch immediately:
-            self._dispatch([trace])
-        else:
-            # Dispatch when called:
-            self._cache.append(trace)
-
 
 class SimpleRestDispatcher(RestDispatcher):
     def _dispatch(self, traces):

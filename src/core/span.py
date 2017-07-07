@@ -102,3 +102,7 @@ class Span(object):
 
     def __exit__(self, t, val, tb):
         self._end_time = datetime.datetime.utcnow()
+
+    def span(self, **kwargs):
+        span = self.trace.span(parent_span=self, **kwargs)
+        return span

@@ -3,19 +3,21 @@
 
 import threading
 
-from core.dispatchers.rest_dispatcher import SimpleRestDispatcher
+from core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
 from core.trace import Trace
 
 
 class SDK(object):
     _data = threading.local()
 
-    def __init__(self, project_id, dispatcher=SimpleRestDispatcher, auto=True):
+    def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True):
         self._project_id = project_id
         self._dispatcher = dispatcher(sdk=self, auto=auto)
+        self.clear()
 
-        if not hasattr(SDK._data, 'traces'):
-            self.clear()
+    @property
+    def dispatcher(self):
+        return self._dispatcher
 
     @classmethod
     def clear(cls):
@@ -61,7 +63,11 @@ class SDK(object):
         return trace
 
     @property
-    def span(self):
+    def current_span(self):
+        span = self.span
+        return span
+
+    def span(self, default_span_id=None):
         """
         Create a new span under the current trace and span (with auto-generated `trace_id`).
 
@@ -69,7 +75,9 @@ class SDK(object):
         :rtype: core.span.Span
         """
         trace = self.current_trace
-        parent_span = trace.spans[-1] if trace.spans else None
+        parent_span = default_span_id if default_span_id is not None else trace.spans[-1] if \
+            trace.spans else None
+
         span = trace.span(parent_span=parent_span)
         return span
 

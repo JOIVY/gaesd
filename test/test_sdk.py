@@ -8,6 +8,7 @@ from types import DictType
 
 from mock import patch
 
+from core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
 from core.dispatchers.rest_dispatcher import SimpleRestDispatcher
 from core.span import Span, SpanKind
 from core.trace import Trace
@@ -32,6 +33,28 @@ class TestDispatcherTestCase(unittest.TestCase):
 
         dispatcher.auto = False
         self.assertFalse(dispatcher.auto)
+
+    @patch('core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
+    def test_auto_dispatch(self, mock_dispatch):
+        dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=True)
+        self.assertTrue(dispatcher.auto)
+
+        trace_id = Trace.new_trace_id()
+        trace = Trace(self.sdk, trace_id=trace_id)
+
+        dispatcher.patchTraces(trace)
+        mock_dispatch.assert_called_once_with([trace])
+
+    @patch('core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
+    def test_auto_dispatch(self, mock_dispatch):
+        dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=False)
+        self.assertFalse(dispatcher.auto)
+
+        trace_id = Trace.new_trace_id()
+        trace = Trace(self.sdk, trace_id=trace_id)
+
+        dispatcher.patchTraces(trace)
+        mock_dispatch.assert_not_called()
 
 
 class TestTraceCase(unittest.TestCase):
@@ -248,7 +271,7 @@ class TestSDKTestCase(unittest.TestCase):
         sdk = SDK(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
-        span = sdk.span
+        span = sdk.span()
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
 
@@ -261,7 +284,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
 
-        span = sdk.span
+        span = sdk.span()
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
         self.assertIs(span.trace, trace)
@@ -281,7 +304,7 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)
 
-        self.assertIsInstance(sdk._dispatcher, SimpleRestDispatcher)
+        self.assertIsInstance(sdk._dispatcher, GoogleApiClientDispatcher)
 
 
 if __name__ == '__main__':
