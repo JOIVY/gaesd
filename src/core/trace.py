@@ -2,17 +2,18 @@
 # -*- coding: latin-1 -*-
 
 import json
+import operator
 import uuid
 
 from .span import Span
 
 
 class Trace(object):
-    def __init__(self, sdk, trace_id=None):
+    def __init__(self, sdk, trace_id=None, root_span_id=None):
         self._sdk = sdk
         self._spans = []
-        self._trace_id = trace_id if trace_id is not None else self.new_trace_id
-        self._root_span_id = None
+        self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
+        self._root_span_id = root_span_id
 
     @property
     def root_span_id(self):
@@ -37,6 +38,10 @@ class Trace(object):
     @property
     def spans(self):
         return self._spans
+
+    @property
+    def span_ids(self):
+        return [span.span_id for span in self._spans]
 
     @property
     def project_id(self):
@@ -70,3 +75,34 @@ class Trace(object):
 
     def end(self):
         self.sdk.patch_trace(self)
+
+    def __add__(self, other):
+        if not isinstance(other, Span):
+            raise TypeError('{0} is not an instance of Span'.format(other))
+
+        span_id = other.span_id
+        if span_id in self.span_ids:
+            raise ValueError('span_id {0} already present in this Trace'.format(span_id))
+
+        self._spans.append(other)
+
+    def __iadd__(self, other):
+        operator.add(self, other)
+        return self
+
+    def __len__(self):
+        return len(self.spans)
+
+    def __sub__(self, other):
+        if not isinstance(other, Span):
+            raise TypeError('{0} is not an instance of Span'.format(other))
+
+        self._spans.remove(other)
+
+    def __isub__(self, other):
+        operator.sub(self, other)
+        return self
+
+    def __iter__(self):
+        for span in self.spans:
+            yield span

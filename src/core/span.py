@@ -4,6 +4,7 @@
 import datetime
 import itertools
 import json
+import operator
 
 from enum import Enum, unique
 
@@ -25,11 +26,10 @@ class Span(object):
         self._trace = trace
         self._span_id = span_id
         self._parent_span = parent_span
-
         self._name = name
         self._start_time = start_time
         self._end_time = end_time
-        self.span_kind = SpanKind(span_kind) if span_kind else SpanKind.unspecified
+        self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
         self.labels = labels or []
 
     @classmethod
@@ -43,6 +43,10 @@ class Span(object):
     @property
     def parent_span(self):
         return self._parent_span
+
+    @parent_span.setter
+    def parent_span(self, parent_span):
+        self._parent_span = parent_span
 
     @property
     def project_id(self):
@@ -75,7 +79,7 @@ class Span(object):
     @span_kind.setter
     def span_kind(self, span_kind):
         # TODO: Validate enum `span_kind`:
-        self._span_kind = SpanKind(span_kind) if span_kind else SpanKind.unspecified
+        self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
 
     def export(self):
         # TODO: FIXME: Finish this properly:
@@ -106,3 +110,61 @@ class Span(object):
     def span(self, **kwargs):
         span = self.trace.span(parent_span=self, **kwargs)
         return span
+
+    def __add__(self, other):
+        operator.add(self.trace, other)
+        other.parent_span = self
+
+    def __iadd__(self, other):
+        operator.add(self, other)
+        return self
+
+    def __rshift__(self, other):
+        """
+        Make span_a's parent_span = span_b
+        span_a >> span_b == span_a.__rshift__(span_b)
+
+        or
+
+        Add span to trace at the top level
+        span >> trace == span.__rshift__(trace)
+        """
+        from trace import Trace
+
+        if isinstance(other, Span):
+            self.parent_span = other
+        elif isinstance(other, Trace):
+            operator.add(other, self)
+        else:
+            raise TypeError('{0} is not an instance of Span'.format(other))
+
+    def __lshift__(self, other):
+        """
+        make span_b's parent_span = span_a
+        span_a << span_b == span_a.__lshift__(span_b)
+
+        or
+
+        Remove span from trace at the top level
+        span << trace == span.__lshift__(trace)
+        """
+        from trace import Trace
+
+        if isinstance(other, Span):
+            other.parent_span = self
+        elif isinstance(other, Trace):
+            operator.sub(other, self)
+        else:
+            raise TypeError('{0} is not an instance of Span'.format(other))
+
+    def __irshift__(self, other):
+        operator.rshift(self, other)
+        return self
+
+    def __ilshift__(self, other):
+        operator.lshift(self, other)
+        return self
+
+    def __iter__(self):
+        for k, v in self.export():
+            yield k, v
