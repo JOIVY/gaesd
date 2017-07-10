@@ -12,17 +12,21 @@ else:
 
 
     class GoogleApiClientDispatcher(Dispatcher):
-        def _dispatch(self, traces):
+        def _prep(self, traces):
             body = [trace.export() for trace in traces]
 
             credentials = GoogleCredentials.get_application_default()
             service = discovery.build('cloudtrace', 'v1', credentials=credentials)
 
-            request = service.projects().patchTraces(
+            return service.projects().patchTraces(
                 projectId=self.sdk.project_id,
                 body=body,
             )
-            return self._emit(request)
+
+        def _dispatch(self, traces):
+            return self._emit(
+                self._prep(traces),
+            )
 
         def _emit(self, request):
             return request.execute()
@@ -55,5 +59,8 @@ else:
 
 
         class GoogleApiClientDispatcherAsync(GoogleApiClientDispatcher):
-            def _emit(self, request):
-                return request.execute(http=HttpUrlfetch())
+            @ndb.tasklet
+            def __call__(self):
+                # Call this from the thread of the request handler.
+                self._prep(self._traces).execute(http=HttpUrlfetch())
+                self._traces = []

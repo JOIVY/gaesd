@@ -26,7 +26,7 @@
 
 3.  Get the default trace_id and root_span_id from the request:
     ```
-    context = get_default_trace-context()
+    context = get_default_trace_context()
     root_trace_id, root_span_id = context.split(';')[0].split('/')
     ```
 
