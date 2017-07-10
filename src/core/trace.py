@@ -70,7 +70,6 @@ class Trace(object):
         return self
 
     def __exit__(self, t, val, tb):
-        # TODO: Fire off this `Trace and it's Spans` to the stack-driver API:
         self.end()
 
     def end(self):

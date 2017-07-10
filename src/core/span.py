@@ -30,11 +30,15 @@ class Span(object):
         self._start_time = start_time
         self._end_time = end_time
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
-        self.labels = labels or []
+        self._labels = labels or []
 
     @classmethod
     def new_span_id(cls):
         return cls._span_ids.next()
+
+    @property
+    def labels(self):
+        return self._labels
 
     @property
     def trace(self):
@@ -78,22 +82,19 @@ class Span(object):
 
     @span_kind.setter
     def span_kind(self, span_kind):
-        # TODO: Validate enum `span_kind`:
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
 
     def export(self):
-        # TODO: FIXME: Finish this properly:
-
         parent_span_id = str(self.parent_span.span_id) if self.parent_span else None
 
         return {
-            'spanId': self.span_id,
+            'spanId': str(self.span_id),
             "kind": self.span_kind.value,
             "name": self.name,
             "startTime": datetime_to_timestamp(self.start_time),
             "endTime": datetime_to_timestamp(self.end_time),
             "parentSpanId": parent_span_id,
-            "labels": self.labels,
+            "labels": [str(label) for label in self.labels],
         }
 
     @property
@@ -108,8 +109,7 @@ class Span(object):
         self._end_time = datetime.datetime.utcnow()
 
     def span(self, **kwargs):
-        span = self.trace.span(parent_span=self, **kwargs)
-        return span
+        return self.trace.span(parent_span=self, **kwargs)
 
     def __add__(self, other):
         operator.add(self.trace, other)

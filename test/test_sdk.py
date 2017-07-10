@@ -254,7 +254,7 @@ class TestSpanCase(unittest.TestCase):
         parent_span_id = Span.new_span_id()
         parent_span = Span(self.trace, parent_span_id, name='parent')
 
-        e_labels = [1, 2, 3]
+        e_labels = ['1', '2', '3']
         span_kind = SpanKind.server
 
         start_time = datetime.datetime(2017, 1, 20)
@@ -272,7 +272,7 @@ class TestSpanCase(unittest.TestCase):
                 set(data.keys()),
                 {'spanId', 'kind', 'name', 'startTime', 'endTime', 'parentSpanId', 'labels'}
             )
-            self.assertEqual(data['spanId'], span_id)
+            self.assertEqual(data['spanId'], str(span_id))
             self.assertEqual(data['kind'], span_kind.value)
             self.assertEqual(data['name'], 'child')
             self.assertEqual(data['startTime'], e_start_time)

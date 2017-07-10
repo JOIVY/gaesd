@@ -8,12 +8,13 @@ import six
 
 PrepData = namedtuple('PrepData', ('url', 'body'))
 
+
 @six.add_metaclass(abc.ABCMeta)
 class Dispatcher(object):
     def __init__(self, sdk=None, auto=True):
         self._sdk = sdk
         self._auto = auto
-        self._cache = []
+        self._traces = []
 
     @property
     def sdk(self):
@@ -33,8 +34,8 @@ class Dispatcher(object):
 
     def __call__(self):
         # Call this from the thread of the request handler.
-        self._dispatch(self._cache)
-        self._cache = []
+        self._dispatch(self._traces)
+        self._traces = []
 
     @abc.abstractmethod
     def _dispatch(self, traces):
@@ -53,4 +54,4 @@ class Dispatcher(object):
             self._dispatch([trace])
         else:
             # Dispatch when called:
-            self._cache.append(trace)
+            self._traces.append(trace)
