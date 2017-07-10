@@ -8,7 +8,12 @@
     from google.appengine.api.app_identity import app_identity
     
     app_id = app_identity.get_application_id()
-    sdk = SDK(project_id=app_id)
+    auto = False   # Requires a call to manually send the results to StackDriver.
+    sdk = SDK(
+        project_id=app_id, 
+        dispatcher=GoogleApiClientDispatcherAsync, 
+        auto=auto,
+    )
     ```
 
 2.  In the application's request handler, get the request context:
@@ -25,17 +30,13 @@
     root_trace_id, root_span_id = context.split(';')[0].split('/')
     ```
 
-4.  Create the root trace:
+4.  Create the root trace with the `root_trace_id` and set the trace's `root_span_id` for all 
+top-level spans:
     ```
-    trace = sdk.trace(trace_id=root_trace_id)
+    trace = sdk.trace(trace_id=root_trace_id, root_span_id=root_span_id)
     ```
    
-5.  Set the trace's root span_id for all top-level spans:
-    ```
-    trace.root_span_id = root_span_id
-    ```
-
-6.  Set the request handler to dispatch the trace data at the end of the request:
+5.  Set the request handler to dispatch the trace data at the end of the request:
     ```
     class handler(webapp2.RequestHandler):
         def get(self):
@@ -43,7 +44,7 @@
             sdk.dispatcher()        # Dispatches to StackDriver API.
     ```
 
-7.  Use the sdk api:
+6.  Use the sdk api:
     ```
     top_level_trace = sdk.current_trace
     current_span_tree = sdk.current_span

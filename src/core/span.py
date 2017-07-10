@@ -164,7 +164,3 @@ class Span(object):
     def __ilshift__(self, other):
         operator.lshift(self, other)
         return self
-
-    def __iter__(self):
-        for k, v in self.export():
-            yield k, v
