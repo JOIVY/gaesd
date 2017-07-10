@@ -9,4 +9,3 @@ tox
 mock
 google-api-python-client
 enum34
-protobuf==3.3.0

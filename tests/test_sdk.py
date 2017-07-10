@@ -10,12 +10,12 @@ from types import DictType
 
 from mock import patch
 
-from core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
-from core.dispatchers.rest_dispatcher import SimpleRestDispatcher
-from core.span import Span, SpanKind
-from core.trace import Trace
-from core.utils import datetime_to_timestamp
-from sdk import SDK
+from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+from gaesd.core.dispatchers.rest_dispatcher import SimpleRestDispatcher
+from gaesd.core.span import Span, SpanKind
+from gaesd.core.trace import Trace
+from gaesd.core.utils import datetime_to_timestamp
+from gaesd.sdk import SDK
 
 
 class TestDispatcherTestCase(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         dispatcher.auto = False
         self.assertFalse(dispatcher.auto)
 
-    @patch('core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
+    @patch('gaesd.core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
     def test_auto_dispatch(self, mock_dispatch):
         dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=True)
         self.assertTrue(dispatcher.auto)
@@ -48,7 +48,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         dispatcher.patchTraces(trace)
         mock_dispatch.assert_called_once_with([trace])
 
-    @patch('core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
+    @patch('gaesd.core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
     def test_auto_dispatch(self, mock_dispatch):
         dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=False)
         self.assertFalse(dispatcher.auto)
@@ -76,7 +76,7 @@ class TestTraceCase(unittest.TestCase):
         self.assertEqual(self.sdk.project_id, trace.project_id)
         self.assertIsNone(trace.root_span_id)
 
-    @patch('sdk.SDK.patch_trace')
+    @patch('gaesd.sdk.SDK.patch_trace')
     def test_patch_trace(self, mock_patch_trace):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)
@@ -128,7 +128,7 @@ class TestTraceCase(unittest.TestCase):
         self.assertEqual(trace.spans, [span])
         self.assertIs(span.parent_span, parent_span)
 
-    @patch('sdk.SDK.patch_trace')
+    @patch('gaesd.sdk.SDK.patch_trace')
     def test_context_manager(self, mock_patch_trace):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)
@@ -426,7 +426,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(sdk._data.traces[0], trace)
         self.assertIs(sdk._data.traces[1], new_trace)
 
-    @patch('sdk.GoogleApiClientDispatcher.patchTraces')
+    @patch('gaesd.sdk.GoogleApiClientDispatcher.patchTraces')
     def test_patch_trace(self, mock_dispatcher):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)

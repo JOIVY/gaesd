@@ -3,7 +3,7 @@
 
 from collections import namedtuple
 
-from core.dispatchers.dispatcher import Dispatcher
+from gaesd.core.dispatchers.dispatcher import Dispatcher
 
 PrepData = namedtuple('PrepData', ('url', 'body'))
 

@@ -8,7 +8,7 @@ import operator
 
 from enum import Enum, unique
 
-from core.utils import datetime_to_timestamp
+from .utils import datetime_to_timestamp
 
 
 @unique

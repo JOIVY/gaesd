@@ -2,11 +2,8 @@
 # -*- coding: latin-1 -*-
 
 import abc
-from collections import namedtuple
 
 import six
-
-PrepData = namedtuple('PrepData', ('url', 'body'))
 
 
 @six.add_metaclass(abc.ABCMeta)

@@ -8,7 +8,8 @@ except ImportError:
     print 'GoogleApiClientDispatcher not available, please vendor-in required package: ' \
           '`google-api-python-client`'
 else:
-    from core.dispatchers.dispatcher import Dispatcher
+    from gaesd.core.dispatchers.dispatcher import Dispatcher
+
 
     class GoogleApiClientDispatcher(Dispatcher):
         def _dispatch(self, traces):
@@ -29,7 +30,6 @@ else:
 
     try:
         from google.appengine.ext import ndb
-        from google.appengine.api import urlfetch
     except ImportError:
         print 'GoogleApiClientDispatcherAsync not available, cannot find appengine SDK.'
     else:
