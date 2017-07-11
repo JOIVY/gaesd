@@ -45,7 +45,7 @@ class Dispatcher(object):
         """
         raise NotImplementedError
 
-    def patchTraces(self, trace):
+    def patch_trace(self, trace):
         if self.auto:
             # Dispatch immediately:
             self._dispatch([trace])

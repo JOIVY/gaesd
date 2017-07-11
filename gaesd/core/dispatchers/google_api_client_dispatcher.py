@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
+from __future__ import print_function
+
 try:
     from googleapiclient import discovery
     from oauth2client.client import GoogleCredentials
-except ImportError:
-    print 'GoogleApiClientDispatcher not available, please vendor-in required package: ' \
-          '`google-api-python-client`'
+except ImportError as e:
+    print('GoogleApiClientDispatcher not available, please vendor-in required package: ' \
+          '`google_api_python_client` and `oauth2client`')
 else:
     from gaesd.core.dispatchers.dispatcher import Dispatcher
 
@@ -15,10 +17,12 @@ else:
         def _prep(self, traces):
             body = [trace.export() for trace in traces]
 
-            credentials = GoogleCredentials.get_application_default()
-            service = discovery.build('cloudtrace', 'v1', credentials=credentials)
+            if not hasattr(self, '__credentials'):
+                self.__credentials = GoogleCredentials.get_application_default()
+            if not hasattr(self, '__service'):
+                self.__service = discovery.build('cloudtrace', 'v1', credentials=self.__credentials)
 
-            return service.projects().patchTraces(
+            return self.__service.projects().patch_trace(
                 projectId=self.sdk.project_id,
                 body=body,
             )
@@ -30,37 +34,3 @@ else:
 
         def _emit(self, request):
             return request.execute()
-
-
-    try:
-        from google.appengine.ext import ndb
-    except ImportError:
-        print 'GoogleApiClientDispatcherAsync not available, cannot find appengine SDK.'
-    else:
-        class HttpUrlfetch(object):
-            @ndb.synctasklet
-            def request(self, uri, method, *args, **kwargs):
-                """
-                Make the http request in the thread of the event loop.
-
-                :note: args are never used.
-                :rtype: tuple(http.HTTPResponse, str(response-body))
-                """
-                response = yield ndb.get_context().urlfetch(
-                    method=method,
-                    url=uri,
-                    headers=kwargs.get('headers', {}),
-                    payload=kwargs.get('body'),
-                )
-
-                raise ndb.Return(
-                    response, response.body,
-                )
-
-
-        class GoogleApiClientDispatcherAsync(GoogleApiClientDispatcher):
-            @ndb.tasklet
-            def __call__(self):
-                # Call this from the thread of the request handler.
-                self._prep(self._traces).execute(http=HttpUrlfetch())
-                self._traces = []

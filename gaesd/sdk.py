@@ -4,9 +4,9 @@
 import operator
 import threading
 
-from core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
-from core.span import Span
-from core.trace import Trace
+from .core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+from .core.span import Span
+from .core.trace import Trace
 
 
 class SDK(object):
@@ -84,7 +84,7 @@ class SDK(object):
         return span
 
     def patch_trace(self, trace):
-        return self._dispatcher.patchTraces(trace)
+        return self._dispatcher.patch_trace(trace)
 
     def __len__(self):
         return len(self._data.traces)

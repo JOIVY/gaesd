@@ -1,6 +1,15 @@
 
 **Python StackDriver SDK for AppEngine and non-AppEngine environments**
 
+<br>
+<br>
+<u>WARNING</u>: <b>Sending traces to the StackDriver Trace API takes approx 200 ms !!!!</b>
+<br>
+<br>
+<br>
+<br>
+
+
 **How to use**
 
 1.  Create a global SDK instance.
@@ -11,7 +20,7 @@
     auto = False   # Requires a call to manually send the results to StackDriver.
     sdk = SDK(
         project_id=app_id, 
-        dispatcher=GoogleApiClientDispatcherAsync, 
+        dispatcher=GoogleApiClientDispatcher, 
         auto=auto,
     )
     ```

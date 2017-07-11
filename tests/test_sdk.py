@@ -6,7 +6,6 @@ import json
 import operator
 import unittest
 import uuid
-from types import DictType
 
 from mock import patch
 
@@ -45,7 +44,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)
 
-        dispatcher.patchTraces(trace)
+        dispatcher.patch_trace(trace)
         mock_dispatch.assert_called_once_with([trace])
 
     @patch('gaesd.core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
@@ -56,7 +55,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)
 
-        dispatcher.patchTraces(trace)
+        dispatcher.patch_trace(trace)
         mock_dispatch.assert_not_called()
 
 
@@ -99,10 +98,10 @@ class TestTraceCase(unittest.TestCase):
         trace = Trace(self.sdk, trace_id=trace_id)
 
         for data in [trace.export(), json.loads(trace.json)]:
-            self.assertIsInstance(data, DictType)
+            self.assertIsInstance(data, {}.__class__)
             self.assertSetEqual(
                 set(data.keys()),
-                {'projectId', 'traceId', 'spans'}
+                set(['projectId', 'traceId', 'spans'])
             )
             self.assertEqual(data['projectId'], self.sdk.project_id)
             self.assertEqual(data['traceId'], trace_id)
@@ -267,10 +266,10 @@ class TestSpanCase(unittest.TestCase):
             span_kind=span_kind, start_time=start_time, end_time=end_time, labels=e_labels)
 
         for data in [span.export(), json.loads(span.json)]:
-            self.assertIsInstance(data, DictType)
+            self.assertIsInstance(data, {}.__class__)
             self.assertSetEqual(
                 set(data.keys()),
-                {'spanId', 'kind', 'name', 'startTime', 'endTime', 'parentSpanId', 'labels'}
+                set(['spanId', 'kind', 'name', 'startTime', 'endTime', 'parentSpanId', 'labels'])
             )
             self.assertEqual(data['spanId'], str(span_id))
             self.assertEqual(data['kind'], span_kind.value)
@@ -426,7 +425,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(sdk._data.traces[0], trace)
         self.assertIs(sdk._data.traces[1], new_trace)
 
-    @patch('gaesd.sdk.GoogleApiClientDispatcher.patchTraces')
+    @patch('gaesd.sdk.GoogleApiClientDispatcher.patch_trace')
     def test_patch_trace(self, mock_dispatcher):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)

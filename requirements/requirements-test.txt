@@ -2,9 +2,6 @@ six
 coverage
 nose
 pip
-Sphinx
-frosted
-flake8
 tox
 mock
 google-api-python-client
