@@ -3,4 +3,4 @@
 
 
 def datetime_to_timestamp(dt):
-    return ''.join([dt.isoformat(), 'Z'])
+    return dt.isoformat('T') + 'Z'
