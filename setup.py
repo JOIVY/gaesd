@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
+#                                   __
+#                                  /\ \
+#     __      __       __    ____  \_\ \
+#   /'_ `\  /'__`\   /'__`\ /',__\ /'_` \
+#  /\ \L\ \/\ \L\.\_/\  __//\__, `/\ \L\ \
+#  \ \____ \ \__/.\_\ \____\/\____\ \___,_\
+#   \/___L\ \/__/\/_/\/____/\/___/ \/__,_ /
+#     /\____/
+#     \_/__/
 
 import os
-from distutils.core import setup
-
 import sys
+from distutils.core import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,7 +30,7 @@ requires = [
 ]
 
 about = {}
-with open(os.path.join(here, 'gaesd', '__init__.py')) as f:
+with open(os.path.join(here, 'gaesd', '__version__.py')) as f:
     exec (f.read(), about)
 
 setup(
@@ -39,10 +47,8 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
         'Programming Language:: Python:: 2.6',
         'Programming Language:: Python:: 2.7',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
-
 )

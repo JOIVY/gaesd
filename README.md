@@ -15,12 +15,12 @@
 1.  Create a global SDK instance.
     ```
     from google.appengine.api.app_identity import app_identity
-    
+    from gaesd import SDK
+
     app_id = app_identity.get_application_id()
     auto = False   # Requires a call to manually send the results to StackDriver.
     sdk = SDK(
         project_id=app_id, 
-        dispatcher=GoogleApiClientDispatcher, 
         auto=auto,
     )
     ```
@@ -50,13 +50,13 @@ top-level spans:
     class handler(webapp2.RequestHandler):
         def get(self):
             ...
-            sdk.dispatcher()        # Dispatches to StackDriver API.
+            sdk()        # Dispatches to StackDriver API.
     ```
 
-6.  Use the sdk api:
+6.  Use the sdk api where you want to trace the code:
     ```
-    top_level_trace = sdk.current_trace
-    current_span_tree = sdk.current_span
+    top_level_trace = sdk.current_trace             # Get the current trace
+    current_span_tree = sdk.current_span            # Get the current span
     
     with current_span_tree:
         ...

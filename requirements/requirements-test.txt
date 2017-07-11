@@ -1,7 +1,6 @@
 six
 coverage
 nose
-pip
 tox
 mock
 google-api-python-client

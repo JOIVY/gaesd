@@ -86,6 +86,9 @@ class SDK(object):
     def patch_trace(self, trace):
         return self._dispatcher.patch_trace(trace)
 
+    def __call__(self):
+        return self._dispatcher()
+
     def __len__(self):
         return len(self._data.traces)
 
