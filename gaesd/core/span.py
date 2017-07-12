@@ -23,11 +23,11 @@ class SpanKind(Enum):
 class Span(object):
     _span_ids = itertools.count(1)
 
-    def __init__(self, trace, span_id, parent_span=None, name='', span_kind=None, start_time=None,
-            end_time=None, labels=None):
+    def __init__(self, trace, span_id, parent_span_id=None, name='', span_kind=None,
+            start_time=None, end_time=None, labels=None):
         self._trace = trace
         self._span_id = span_id
-        self._parent_span = parent_span
+        self._parent_span_id = parent_span_id
         self._name = name
         self._start_time = start_time
         self._end_time = end_time
@@ -35,8 +35,7 @@ class Span(object):
         self._labels = labels or []
 
     def __str__(self):
-        parent_span_id = self.parent_span.span_id if self.parent_span is not None else None
-        return 'Span({0} from {1})[({2} - {3}) - {4}]'.format(self.span_id, parent_span_id,
+        return 'Span({0} from {1})[({2} - {3}) - {4}]'.format(self.span_id, self.parent_span_id,
             self._start_time, self._end_time, self._span_kind)
 
     @classmethod
@@ -52,12 +51,12 @@ class Span(object):
         return self._trace
 
     @property
-    def parent_span(self):
-        return self._parent_span
+    def parent_span_id(self):
+        return self._parent_span_id
 
-    @parent_span.setter
-    def parent_span(self, parent_span):
-        self._parent_span = parent_span
+    @parent_span_id.setter
+    def parent_span_id(self, parent_span_id):
+        self._parent_span_id = parent_span_id
 
     @property
     def project_id(self):
@@ -92,7 +91,7 @@ class Span(object):
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
 
     def export(self):
-        parent_span_id = str(self.parent_span.span_id) if self.parent_span else None
+        parent_span_id = str(self.parent_span_id) if self.parent_span_id else None
 
         return {
             'spanId': str(self.span_id),

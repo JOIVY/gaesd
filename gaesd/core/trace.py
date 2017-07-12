@@ -18,7 +18,8 @@ class Trace(object):
         self._root_span_id = root_span_id
 
     def __str__(self):
-        return 'Trace({0})[{1}]'.format(self.trace_id, ', '.join([str(i) for i in self.spans]))
+        return 'Trace({0} with root {2})[{1}]'.format(
+            self.trace_id, ', '.join([str(i) for i in self.spans]), self._root_span_id)
 
     @property
     def root_span_id(self):
@@ -57,10 +58,10 @@ class Trace(object):
         return self.sdk.project_id
 
     def span(self, parent_span=None, **kwargs):
-        if not self.spans:
-            parent_span = parent_span or self.root_span_id
+        default_parent_span_id = self.root_span_id if not self.spans else None
+        parent_span_id = parent_span.span_id if parent_span is not None else default_parent_span_id
 
-        span = Span(self, Span.new_span_id(), parent_span, **kwargs)
+        span = Span(self, Span.new_span_id(), parent_span_id, **kwargs)
         self._spans.append(span)
         return span
 

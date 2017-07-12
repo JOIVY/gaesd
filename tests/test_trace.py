@@ -20,13 +20,13 @@ class TestTraceCase(unittest.TestCase):
     def test_init(self):
         trace_id = Trace.new_trace_id()
 
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace(self.sdk, trace_id=trace_id, root_span_id=123)
 
         self.assertEqual(trace.trace_id, trace_id)
         self.assertEqual(trace.sdk, self.sdk)
         self.assertEqual(trace.spans, [])
         self.assertEqual(self.sdk.project_id, trace.project_id)
-        self.assertIsNone(trace.root_span_id)
+        self.assertEqual(trace.root_span_id, 123)
 
     @patch('gaesd.sdk.SDK.patch_trace')
     def test_patch_trace(self, mock_patch_trace):
@@ -68,7 +68,7 @@ class TestTraceCase(unittest.TestCase):
         span = trace.span(parent_span=parent_span)
         self.assertIsInstance(span, Span)
         self.assertEqual(trace.spans, [span])
-        self.assertIs(span.parent_span, parent_span)
+        self.assertIsNone(span.parent_span_id)
 
     def test_span_parent(self):
         trace_id = Trace.new_trace_id()
@@ -78,7 +78,7 @@ class TestTraceCase(unittest.TestCase):
         span = trace.span(parent_span=parent_span)
         self.assertIsInstance(span, Span)
         self.assertEqual(trace.spans, [span])
-        self.assertIs(span.parent_span, parent_span)
+        self.assertIs(span.parent_span_id, parent_span.span_id)
 
     @patch('gaesd.sdk.SDK.patch_trace')
     def test_context_manager(self, mock_patch_trace):
@@ -107,7 +107,7 @@ class TestTraceCase(unittest.TestCase):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)
 
-        span = trace.span(trace)
+        span = trace.span()
         self.assertIn(span, trace.spans)
 
         self.assertRaises(ValueError, operator.add, trace, span)
@@ -159,6 +159,10 @@ class TestTraceCase(unittest.TestCase):
 
         trace_ids = [trace.trace_id for trace in iter(self.sdk)]
         self.assertEqual(self.sdk._trace_ids, trace_ids)
+
+    def test_str(self):
+        trace = self.sdk.current_trace
+        self.assertIsNotNone(str(trace))
 
 
 if __name__ == '__main__':

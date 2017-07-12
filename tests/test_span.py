@@ -23,7 +23,7 @@ class TestSpanCase(unittest.TestCase):
         span = Span(self.trace, span_id)
         self.assertIs(span.trace, self.trace)
         self.assertEqual(span.span_id, span_id)
-        self.assertIsNone(span.parent_span)
+        self.assertIsNone(span.parent_span_id)
         self.assertEqual(span.name, '')
         self.assertIsNone(span.start_time)
         self.assertIsNone(span.end_time)
@@ -47,10 +47,10 @@ class TestSpanCase(unittest.TestCase):
         span.span_kind = new_span_kind
         self.assertEqual(span.span_kind, SpanKind.client)
 
-        self.assertIsNone(span.parent_span)
+        self.assertIsNone(span.parent_span_id)
         new_span = Span(self.trace, Span.new_span_id())
-        span.parent_span = new_span
-        self.assertIs(span.parent_span, new_span)
+        span.parent_span_id = new_span.span_id
+        self.assertIs(span.parent_span_id, new_span.span_id)
 
     def test_export(self):
         parent_span_id = Span.new_span_id()
@@ -65,7 +65,7 @@ class TestSpanCase(unittest.TestCase):
         e_end_time = datetime_to_timestamp(end_time)
 
         span_id = Span.new_span_id()
-        span = Span(self.trace, span_id, parent_span=parent_span, name='child',
+        span = Span(self.trace, span_id, parent_span_id=parent_span_id, name='child',
             span_kind=span_kind, start_time=start_time, end_time=end_time, labels=e_labels)
 
         for data in [span.export(), json.loads(span.json)]:
@@ -167,11 +167,11 @@ class TestSpanCase(unittest.TestCase):
     def test_span(self):
         trace = self.sdk.current_trace
         span = trace.span()
-        self.assertIsNone(span.parent_span)
+        self.assertIsNone(span.parent_span_id)
         self.assertIn(span, trace.spans)
 
         nested_span = span.span()
-        self.assertEqual(nested_span.parent_span, span)
+        self.assertEqual(nested_span.parent_span_id, span.span_id)
         self.assertIn(nested_span, trace.spans)
 
     def test_iter(self):
@@ -182,6 +182,11 @@ class TestSpanCase(unittest.TestCase):
 
         spans = [span for span in iter(trace)]
         self.assertEqual(e_spans, spans)
+
+    def test_str(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+        self.assertIsNotNone(str(span))
 
 
 if __name__ == '__main__':

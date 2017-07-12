@@ -40,11 +40,13 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk.project_id, project_id)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(sdk.dispatcher.auto, auto)
+
         def is_enabled(e):
             try:
                 return bool(e())
             except:
                 return bool(e)
+
         self.assertEqual(sdk.is_enabled, is_enabled(enabler))
 
     def test_current_trace_creates(self):
@@ -135,7 +137,7 @@ class TestSDKTestCase(unittest.TestCase):
 
         span = sdk.span(parent_span=parent_span)
         self.assertIsInstance(span, Span)
-        self.assertIs(span.parent_span, parent_span)
+        self.assertEqual(span.parent_span_id, parent_span.span_id)
 
     def test_nested_span_uses_parent_span_if_provided(self):
         project_id = 'joivy-dev5'
@@ -145,11 +147,11 @@ class TestSDKTestCase(unittest.TestCase):
 
         span = sdk.span(parent_span=parent_span)
         self.assertIsInstance(span, Span)
-        self.assertIs(span.parent_span, parent_span)
+        self.assertEqual(span.parent_span_id, parent_span.span_id)
 
         nested_span = sdk.span(parent_span=span)
         self.assertIsInstance(nested_span, Span)
-        self.assertIs(nested_span.parent_span, span)
+        self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_nested_span_uses_parent_span_implicitly(self):
         project_id = 'joivy-dev5'
@@ -157,11 +159,11 @@ class TestSDKTestCase(unittest.TestCase):
 
         span = sdk.span()
         self.assertIsInstance(span, Span)
-        self.assertIsNone(span.parent_span)
+        self.assertIsNone(span.parent_span_id)
 
         nested_span = sdk.span()
         self.assertIsInstance(nested_span, Span)
-        self.assertIs(nested_span.parent_span, span)
+        self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_clear(self):
         project_id = 'joivy-dev5'
@@ -290,6 +292,11 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIn(trace.trace_id, sdk._trace_ids)
 
         self.assertRaises(ValueError, operator.add, sdk, trace)
+
+    def test_str(self):
+        project_id = 'joivy-dev5'
+        sdk = SDK(project_id=project_id, auto=False)
+        self.assertIsNotNone(str(sdk))
 
 
 if __name__ == '__main__':

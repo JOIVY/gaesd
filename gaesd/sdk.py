@@ -33,7 +33,7 @@ class SDK(object):
         self._data.enabler = enabler
 
     def __str__(self):
-        return 'Trace-SDK(Trace_Ids: {0})'.format(self._trace_ids)
+        return 'Trace-SDK({0})[{1}]'.format(self.project_id, [str(i) for i in self._trace_ids])
 
     @property
     def is_enabled(self):
