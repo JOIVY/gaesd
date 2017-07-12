@@ -123,6 +123,7 @@ class Trace(object):
             raise TypeError('{0} is not an instance of Span'.format(other))
 
         self._spans.remove(other)
+        self._remove_span_from_span_tree(other)
 
     def __isub__(self, other):
         operator.sub(self, other)
