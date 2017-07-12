@@ -17,7 +17,9 @@ else:
 
     class GoogleApiClientDispatcher(Dispatcher):
         def _prep(self, traces):
-            body = [trace.export() for trace in traces]
+            body = {
+                'traces': [trace.export() for trace in traces],
+            }
 
             if not hasattr(self, '__credentials'):
                 self.__credentials = GoogleCredentials.get_application_default()
