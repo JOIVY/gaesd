@@ -56,7 +56,8 @@ class TestSpanCase(unittest.TestCase):
         parent_span_id = Span.new_span_id()
         parent_span = Span(self.trace, parent_span_id, name='parent')
 
-        e_labels = ['1', '2', '3']
+        labels = {'a':1, 'b': '2', 'c': None}
+        e_labels = {'a': '1', 'b': '2', 'c': 'None'}
         span_kind = SpanKind.server
 
         start_time = datetime.datetime(2017, 1, 20)

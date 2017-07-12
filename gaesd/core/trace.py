@@ -16,6 +16,7 @@ class Trace(object):
         self._spans = []
         self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
         self._root_span_id = root_span_id
+        self._span_tree = []
 
     def __str__(self):
         return 'Trace({0} with root {2})[{1}]'.format(
@@ -57,11 +58,16 @@ class Trace(object):
     def project_id(self):
         return self.sdk.project_id
 
+    def _add_new_span_to_span_tree(self, new_span):
+        # TODO:
+        pass
+
     def span(self, parent_span=None, **kwargs):
         parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
 
         span = Span(self, Span.new_span_id(), parent_span_id, **kwargs)
         self._spans.append(span)
+        self._add_new_span_to_span_tree(span)
         return span
 
     def export(self):
@@ -93,6 +99,7 @@ class Trace(object):
             raise ValueError('span_id {0} already present in this Trace'.format(span_id))
 
         self._spans.append(other)
+        self._add_new_span_to_span_tree(other)
 
     def __iadd__(self, other):
         operator.add(self, other)

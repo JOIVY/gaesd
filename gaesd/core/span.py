@@ -32,7 +32,7 @@ class Span(object):
         self._start_time = start_time
         self._end_time = end_time
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
-        self._labels = labels or []
+        self._labels = labels or {}
 
     def __str__(self):
         return 'Span({0} from {1})[({2} - {3}) - {4}]'.format(self.span_id, self.parent_span_id,
@@ -92,6 +92,7 @@ class Span(object):
 
     def export(self):
         parent_span_id = str(self.parent_span_id) if self.parent_span_id else None
+        lebels = dict((str(label), str(label_value)) for label, label_value in self.labels.items())
 
         return {
             'spanId': str(self.span_id),
@@ -100,7 +101,7 @@ class Span(object):
             "startTime": datetime_to_timestamp(self.start_time),
             "endTime": datetime_to_timestamp(self.end_time),
             "parentSpanId": parent_span_id,
-            "labels": [str(label) for label in self.labels],
+            "labels": lebels,
         }
 
     @property
@@ -113,6 +114,8 @@ class Span(object):
 
     def __exit__(self, t, val, tb):
         self._end_time = datetime.datetime.utcnow()
+        # Fire of this trace:
+        self.trace.end()
 
     def span(self, **kwargs):
         return self.trace.span(parent_span=self, **kwargs)
