@@ -112,8 +112,7 @@ class SDK(object):
         return span
 
     def patch_trace(self, trace):
-        if self.is_enabled:
-            return self._dispatcher.patch_trace(trace)
+        return self._dispatcher.patch_trace(trace)
 
     def __call__(self):
         return self._dispatcher()
