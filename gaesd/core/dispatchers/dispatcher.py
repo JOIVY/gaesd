@@ -10,18 +10,15 @@ __all__ = ['Dispatcher']
 
 @six.add_metaclass(abc.ABCMeta)
 class Dispatcher(object):
-    def __init__(self, sdk=None, auto=True, enabler=True):
+    def __init__(self, sdk=None, auto=True):
         """
         :param sdk: SDK instance to use
         :type sdk: gaesd.sdk.SDK
         :param auto: True=dispatch traces immediately upon span completion, False=Otherwise.
         :type auto: bool
-        :param enabler: Global kill switch.
-        :type enabler: bool/callable
         """
         self._sdk = sdk
         self._auto = auto
-        self._enabler = enabler
         self._traces = []
 
     @property
@@ -42,10 +39,7 @@ class Dispatcher(object):
 
     @property
     def is_enabled(self):
-        try:
-            return bool(self._enabler())
-        except:
-            return bool(self._enabler)
+        return self.sdk.is_enabled
 
     def __call__(self):
         # Call this from the thread of the request handler.
@@ -66,8 +60,7 @@ class Dispatcher(object):
     def patch_trace(self, trace):
         if self.auto:
             # Dispatch immediately:
-            if self.is_enabled:
-                self._dispatch([trace])
+            self._dispatch([trace])
         else:
             # Dispatch when called:
             self._traces.append(trace)

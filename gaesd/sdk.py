@@ -8,28 +8,41 @@ from .core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispat
 from .core.span import Span
 from .core.trace import Trace
 
+DEFAULT_ENABLER = True
+
 
 class SDK(object):
     _data = threading.local()
 
-    def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=True):
+    def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True,
+            enabler=DEFAULT_ENABLER):
         """
         :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
         :type project_id: str
         :param dispatcher: Dispatcher type to use
         :type dispatcher: type(gaesd.core.dispatchers.dispatcher.Dispatcher)
         :param auto: True=dispatch traces immediately upon span completion, False=Otherwise.
+        Default=True.
         :type auto: bool
-        :param enabler: Global kill switch.
+        :param enabler: Global kill switch. True=enabled, Otherwise=killed. Default=True.
         :type enabler: bool/callable
         """
         self._project_id = project_id
-        self._dispatcher = dispatcher(sdk=self, auto=auto, enabler=enabler)
+        self._dispatcher = dispatcher(sdk=self, auto=auto)
         self.clear()
+        self._data.enabler = enabler
 
     @property
     def is_enabled(self):
-        return self._dispatcher.is_enabled
+        enabler = SDK._data.enabler
+
+        try:
+            return bool(enabler())
+        except:
+            return bool(enabler)
+
+    def set_enabler(self, enabler):
+        SDK._data.enabler = enabler
 
     @property
     def dispatcher(self):
@@ -38,6 +51,7 @@ class SDK(object):
     @staticmethod
     def clear():
         SDK._data.traces = []
+        SDK._data.enabler = False
 
     @property
     def project_id(self):
@@ -98,7 +112,8 @@ class SDK(object):
         return span
 
     def patch_trace(self, trace):
-        return self._dispatcher.patch_trace(trace)
+        if self.is_enabled:
+            return self._dispatcher.patch_trace(trace)
 
     def __call__(self):
         return self._dispatcher()
