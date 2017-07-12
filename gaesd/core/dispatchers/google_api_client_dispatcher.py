@@ -24,7 +24,7 @@ else:
             if not hasattr(self, '__service'):
                 self.__service = discovery.build('cloudtrace', 'v1', credentials=self.__credentials)
 
-            return self.__service.projects().patch_trace(
+            return self.__service.projects().patchTraces(
                 projectId=self.sdk.project_id,
                 body=body,
             )
