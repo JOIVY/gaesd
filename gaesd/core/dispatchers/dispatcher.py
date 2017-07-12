@@ -44,7 +44,7 @@ class Dispatcher(object):
     def __call__(self):
         # Call this from the thread of the request handler.
         if self.is_enabled:
-            print('Immediate dispatch')
+            print('dispatching')
             self._dispatch(self._traces)
         self._traces = []
 
@@ -62,7 +62,12 @@ class Dispatcher(object):
     def patch_trace(self, trace):
         if self.auto:
             # Dispatch immediately:
+            print('Immediate dispatch')
             self._dispatch([trace])
         else:
+            if trace in self._traces:
+                # Trace already cached!
+                return
             # Dispatch when called:
+            print('Delayed dispatch')
             self._traces.append(trace)

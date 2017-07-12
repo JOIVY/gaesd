@@ -92,7 +92,7 @@ class Span(object):
 
     def export(self):
         parent_span_id = str(self.parent_span_id) if self.parent_span_id else None
-        lebels = dict((str(label), str(label_value)) for label, label_value in self.labels.items())
+        labels = dict((str(label), str(label_value)) for label, label_value in self.labels.items())
 
         return {
             'spanId': str(self.span_id),
@@ -101,7 +101,7 @@ class Span(object):
             "startTime": datetime_to_timestamp(self.start_time),
             "endTime": datetime_to_timestamp(self.end_time),
             "parentSpanId": parent_span_id,
-            "labels": lebels,
+            "labels": labels,
         }
 
     @property
@@ -115,7 +115,7 @@ class Span(object):
     def __exit__(self, t, val, tb):
         self._end_time = datetime.datetime.utcnow()
         # Fire of this trace:
-        self.trace.end()
+        self.trace.end(self)
 
     def span(self, **kwargs):
         return self.trace.span(parent_span=self, **kwargs)

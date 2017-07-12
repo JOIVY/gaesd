@@ -48,7 +48,7 @@ class Trace(object):
 
     @property
     def current_span(self):
-        return self.spans[-1] if self.spans else self.sdk.new_span
+        return self._span_tree[-1] if self._span_tree else self.sdk.new_span
 
     @property
     def span_ids(self):
@@ -59,8 +59,17 @@ class Trace(object):
         return self.sdk.project_id
 
     def _add_new_span_to_span_tree(self, new_span):
-        # TODO:
-        pass
+        if not self._span_tree:
+            self._span_tree.append(new_span)
+        else:
+            if self.spans and new_span:
+                if self._span_tree[-1].span_id == new_span.parent_span_id:
+                    self._span_tree.append(new_span)
+
+    def _remove_span_from_span_tree(self, span):
+        if self._span_tree:
+            if self._span_tree[-1] is span:
+                self._span_tree.pop(-1)
 
     def span(self, parent_span=None, **kwargs):
         parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
@@ -87,8 +96,9 @@ class Trace(object):
     def __exit__(self, t, val, tb):
         self.end()
 
-    def end(self):
+    def end(self, span=None):
         self.sdk.patch_trace(self)
+        self._remove_span_from_span_tree(span)
 
     def __add__(self, other):
         if not isinstance(other, Span):
