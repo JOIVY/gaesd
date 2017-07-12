@@ -12,6 +12,8 @@ except ImportError as e:
 else:
     from gaesd.core.dispatchers.dispatcher import Dispatcher
 
+    __all__ = ['GoogleApiClientDispatcher']
+
 
     class GoogleApiClientDispatcher(Dispatcher):
         def _prep(self, traces):

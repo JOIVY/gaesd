@@ -7,6 +7,8 @@ from gaesd.core.dispatchers.dispatcher import Dispatcher
 
 PrepData = namedtuple('PrepData', ('url', 'body'))
 
+__all__ = ['PrepData', 'RestDispatcher', 'SimpleRestDispatcher']
+
 
 class RestDispatcher(Dispatcher):
     _ROOT_URL = 'https://cloudtrace.googleapis.com'

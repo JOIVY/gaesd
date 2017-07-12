@@ -12,10 +12,24 @@ from .core.trace import Trace
 class SDK(object):
     _data = threading.local()
 
-    def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True):
+    def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=True):
+        """
+        :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
+        :type project_id: str
+        :param dispatcher: Dispatcher type to use
+        :type dispatcher: type(gaesd.core.dispatchers.dispatcher.Dispatcher)
+        :param auto: True=dispatch traces immediately upon span completion, False=Otherwise.
+        :type auto: bool
+        :param enabler: Global kill switch.
+        :type enabler: bool/callable
+        """
         self._project_id = project_id
-        self._dispatcher = dispatcher(sdk=self, auto=auto)
+        self._dispatcher = dispatcher(sdk=self, auto=auto, enabler=enabler)
         self.clear()
+
+    @property
+    def is_enabled(self):
+        return self._dispatcher.is_enabled
 
     @property
     def dispatcher(self):

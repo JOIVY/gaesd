@@ -10,6 +10,8 @@ from enum import Enum, unique
 
 from .utils import datetime_to_timestamp
 
+__all__ = ['SpanKind', 'Span']
+
 
 @unique
 class SpanKind(Enum):

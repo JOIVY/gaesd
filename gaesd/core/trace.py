@@ -7,6 +7,8 @@ import uuid
 
 from .span import Span
 
+__all__ = ['Trace']
+
 
 class Trace(object):
     def __init__(self, sdk, trace_id=None, root_span_id=None):
