@@ -58,8 +58,7 @@ class Trace(object):
         return self.sdk.project_id
 
     def span(self, parent_span=None, **kwargs):
-        default_parent_span_id = self.root_span_id if not self.spans else None
-        parent_span_id = parent_span.span_id if parent_span is not None else default_parent_span_id
+        parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
 
         span = Span(self, Span.new_span_id(), parent_span_id, **kwargs)
         self._spans.append(span)

@@ -70,6 +70,16 @@ class TestTraceCase(unittest.TestCase):
         self.assertEqual(trace.spans, [span])
         self.assertIsNone(span.parent_span_id)
 
+    def test_span_no_parent_with_root_span_id(self):
+        trace_id = Trace.new_trace_id()
+        trace = Trace(self.sdk, trace_id=trace_id, root_span_id=123)
+        parent_span = None
+
+        span = trace.span(parent_span=parent_span)
+        self.assertIsInstance(span, Span)
+        self.assertEqual(trace.spans, [span])
+        self.assertEqual(span.parent_span_id, 123)
+
     def test_span_parent(self):
         trace_id = Trace.new_trace_id()
         trace = Trace(self.sdk, trace_id=trace_id)

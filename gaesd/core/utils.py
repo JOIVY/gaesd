@@ -5,4 +5,4 @@ __all__ = ['datetime_to_timestamp']
 
 
 def datetime_to_timestamp(dt):
-    return dt.isoformat('T') + 'Z'
+    return dt.isoformat('T') + 'Z' if dt else None
