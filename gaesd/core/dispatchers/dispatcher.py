@@ -44,6 +44,7 @@ class Dispatcher(object):
     def __call__(self):
         # Call this from the thread of the request handler.
         if self.is_enabled:
+            print('Immediate dispatch')
             self._dispatch(self._traces)
         self._traces = []
 

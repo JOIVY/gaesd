@@ -17,6 +17,9 @@ class Trace(object):
         self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
         self._root_span_id = root_span_id
 
+    def __str__(self):
+        return 'Trace({0})[{1}]'.format(self.trace_id, ', '.join([str(i) for i in self.spans]))
+
     @property
     def root_span_id(self):
         return self._root_span_id
@@ -40,6 +43,10 @@ class Trace(object):
     @property
     def spans(self):
         return self._spans
+
+    @property
+    def current_span(self):
+        return self.spans[-1] if self.spans else self.sdk.new_span
 
     @property
     def span_ids(self):

@@ -178,7 +178,7 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)
 
-        self.assertIsInstance(sdk._dispatcher, GoogleApiClientDispatcher)
+        self.assertIsInstance(sdk.dispatcher, GoogleApiClientDispatcher)
 
     def test_current_span_creates_trace(self):
         project_id = 'joivy-dev5'
@@ -197,8 +197,33 @@ class TestSDKTestCase(unittest.TestCase):
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(trace.spans), 0)
 
         span = sdk.current_span
+        self.assertIsInstance(span, Span)
+        self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertIs(span.trace, trace)
+        self.assertEqual(len(trace.spans), 1)
+
+    def test_new_span_creates_trace(self):
+        project_id = 'joivy-dev5'
+        sdk = SDK(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk._trace_ids), 0)
+
+        span = sdk.new_span
+        self.assertIsInstance(span, Span)
+        self.assertEqual(len(sdk._trace_ids), 1)
+
+    def test_new_span_finds_trace(self):
+        project_id = 'joivy-dev5'
+        sdk = SDK(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk._trace_ids), 0)
+
+        trace = sdk.current_trace
+        self.assertIsInstance(trace, Trace)
+        self.assertEqual(len(sdk._trace_ids), 1)
+
+        span = sdk.new_span
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
         self.assertIs(span.trace, trace)

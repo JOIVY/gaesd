@@ -34,6 +34,11 @@ class Span(object):
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
         self._labels = labels or []
 
+    def __str__(self):
+        parent_span_id = self.parent_span.span_id if self.parent_span is not None else None
+        return 'Span({0} from {1})[({2} - {3}) - {4}]'.format(self.span_id, parent_span_id,
+            self._start_time, self._end_time, self._span_kind)
+
     @classmethod
     def new_span_id(cls):
         return cls._span_ids.next()

@@ -28,9 +28,12 @@ class SDK(object):
         :type enabler: bool/callable
         """
         self._project_id = project_id
-        self._dispatcher = dispatcher(sdk=self, auto=auto)
         self.clear()
+        self._data.dispatcher = dispatcher(sdk=self, auto=auto)
         self._data.enabler = enabler
+
+    def __str__(self):
+        return 'Trace-SDK(Trace_Ids: {0})'.format(self._trace_ids)
 
     @property
     def is_enabled(self):
@@ -46,12 +49,13 @@ class SDK(object):
 
     @property
     def dispatcher(self):
-        return self._dispatcher
+        return self._data.dispatcher
 
     @staticmethod
     def clear():
         SDK._data.traces = []
         SDK._data.enabler = False
+        SDK._data.dispatcher = None
 
     @property
     def project_id(self):
@@ -94,8 +98,12 @@ class SDK(object):
 
     @property
     def current_span(self):
-        span = self.span()
-        return span
+        trace = self.current_trace
+        return trace.current_span
+
+    @property
+    def new_span(self):
+        return self.span()
 
     def span(self, parent_span=None):
         """
@@ -112,10 +120,10 @@ class SDK(object):
         return span
 
     def patch_trace(self, trace):
-        return self._dispatcher.patch_trace(trace)
+        return self.dispatcher.patch_trace(trace)
 
     def __call__(self):
-        return self._dispatcher()
+        return self.dispatcher()
 
     def __len__(self):
         return len(self._data.traces)
