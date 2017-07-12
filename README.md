@@ -73,3 +73,8 @@ top-level spans:
     with top_level_trace.span(name='a'):
         ...
     ```
+
+
+***TODO***
+
+1.  Create decorators so we can automatically trace methods.
