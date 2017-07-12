@@ -69,7 +69,7 @@ class Trace(object):
         return {
             'projectId': str(self.project_id),
             'traceId': str(self.trace_id),
-            'spans': [i for i in self.spans if i is not None],
+            'spans': [i.export() for i in self.spans if i is not None],
         }
 
     @property
