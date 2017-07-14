@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
+import datetime
 import json
 import operator
 import uuid
+from types import NoneType
 
 from .span import Span
+from .utils import InvalidSliceError, find_spans_in_datetime_range, find_spans_in_float_range, \
+    find_spans_with_duration
 
 __all__ = ['Trace']
 
@@ -38,6 +42,10 @@ class Trace(object):
     def trace_id(self):
         return self._trace_id
 
+    @trace_id.setter
+    def trace_id(self, trace_id):
+        self._trace_id = trace_id
+
     @property
     def sdk(self):
         return self._sdk
@@ -45,6 +53,12 @@ class Trace(object):
     @property
     def spans(self):
         return self._spans
+
+    def set_default(self, **kwargs):
+        if 'trace_id' in kwargs:
+            self._trace_id = kwargs['trace_id']
+        if 'root_span_id' in kwargs:
+            self._root_span_id = kwargs['root_span_id']
 
     @property
     def current_span(self):
@@ -132,3 +146,26 @@ class Trace(object):
     def __iter__(self):
         for span in self.spans:
             yield span
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            # Get spans that filter as the slice:
+            start = item.start
+            step = item.step
+            stop = item.stop
+
+            if all([isinstance(i, (datetime.datetime, NoneType)) for i in [start, stop]]):
+                # TODO: Find all spans that start on or after start and before stop (if present).
+                spans = find_spans_in_datetime_range(self.spans, start, stop)
+                return spans[::step]
+            if all([isinstance(i, float) for i in [start, stop]]):
+                spans = find_spans_in_float_range(self.spans, start, stop)
+                return spans[::step]
+            if not all([isinstance(i, int) for i in [start, stop, step]]):
+                raise InvalidSliceError('Invalid slice {slice}'.format(slice=slice))
+        elif isinstance(item, datetime.timedelta):
+            # Find all spans that have a duration less than item
+            spans = find_spans_with_duration(self.spans, item)
+            return spans
+
+        return self._spans[item]

@@ -12,7 +12,7 @@ DEFAULT_ENABLER = True
 
 
 class SDK(object):
-    _data = threading.local()
+    _context = threading.local()
 
     def __init__(self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True,
             enabler=DEFAULT_ENABLER):
@@ -29,15 +29,15 @@ class SDK(object):
         """
         self._project_id = project_id
         self.clear()
-        self._data.dispatcher = dispatcher(sdk=self, auto=auto)
-        self._data.enabler = enabler
+        self._context.dispatcher = dispatcher(sdk=self, auto=auto)
+        self._context.enabler = enabler
 
     def __str__(self):
         return 'Trace-SDK({0})[{1}]'.format(self.project_id, [str(i) for i in self._trace_ids])
 
     @property
     def is_enabled(self):
-        enabler = SDK._data.enabler
+        enabler = SDK._context.enabler
 
         try:
             return bool(enabler())
@@ -45,17 +45,17 @@ class SDK(object):
             return bool(enabler)
 
     def set_enabler(self, enabler):
-        SDK._data.enabler = enabler
+        SDK._context.enabler = enabler
 
     @property
     def dispatcher(self):
-        return self._data.dispatcher
+        return self._context.dispatcher
 
     @staticmethod
     def clear():
-        SDK._data.traces = []
-        SDK._data.enabler = False
-        SDK._data.dispatcher = None
+        SDK._context.traces = []
+        SDK._context.enabler = False
+        SDK._context.dispatcher = None
 
     @property
     def project_id(self):
@@ -69,7 +69,7 @@ class SDK(object):
         :return: Trace context-manager
         :rtype: core.trace.Trace
         """
-        traces = self._data.traces
+        traces = self._context.traces
         if traces:
             return traces[-1]
 
@@ -77,7 +77,7 @@ class SDK(object):
 
     @property
     def _trace_ids(self):
-        return [trace.trace_id for trace in self._data.traces]
+        return [trace.trace_id for trace in self._context.traces]
 
     def trace(self, **kwargs):
         """
@@ -93,7 +93,7 @@ class SDK(object):
         if trace_id in self._trace_ids:
             raise ValueError('invalid trace_id {trace_id}'.format(trace_id=trace_id))
 
-        self._data.traces.append(trace)
+        self._context.traces.append(trace)
         return trace
 
     @property
@@ -126,14 +126,14 @@ class SDK(object):
         return self.dispatcher()
 
     def __len__(self):
-        return len(self._data.traces)
+        return len(self._context.traces)
 
     def __add__(self, other):
         if isinstance(other, Trace):
             trace_id = other.trace_id
             if trace_id in self._trace_ids:
                 raise ValueError('invalid trace_id {trace_id}'.format(trace_id=trace_id))
-            self._data.traces.append(other)
+            self._context.traces.append(other)
         elif isinstance(other, Span):
             operator.add(self.current_trace, other)
         else:
@@ -148,5 +148,8 @@ class SDK(object):
         pass
 
     def __iter__(self):
-        for trace in self._data.traces:
+        for trace in self._context.traces:
             yield trace
+
+    def __getitem__(self, item):
+        return SDK._context.traces[item]

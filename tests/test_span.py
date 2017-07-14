@@ -7,7 +7,7 @@ import operator
 import unittest
 
 from gaesd.core.span import Span, SpanKind
-from gaesd.core.utils import datetime_to_timestamp
+from gaesd.core.utils import datetime_to_timestamp, NoDurationError
 from gaesd.sdk import SDK
 
 
@@ -52,11 +52,22 @@ class TestSpanCase(unittest.TestCase):
         span.parent_span_id = new_span.span_id
         self.assertIs(span.parent_span_id, new_span.span_id)
 
+        self.assertIsNone(span.start_time)
+        self.assertIsNone(span.end_time)
+
+        start_time = datetime.datetime.utcnow()
+        span.start_time = start_time
+        self.assertEqual(span.start_time, start_time)
+
+        end_time = datetime.datetime.utcnow()
+        span.end_time = end_time
+        self.assertEqual(span.end_time, end_time)
+
     def test_export(self):
         parent_span_id = Span.new_span_id()
         parent_span = Span(self.trace, parent_span_id, name='parent')
 
-        labels = {'a':1, 'b': '2', 'c': None}
+        labels = {'a': 1, 'b': '2', 'c': None}
         e_labels = {'a': '1', 'b': '2', 'c': 'None'}
         span_kind = SpanKind.server
 
@@ -188,6 +199,38 @@ class TestSpanCase(unittest.TestCase):
         trace = self.sdk.current_trace
         span = trace.span()
         self.assertIsNotNone(str(span))
+
+    def test_has_duration(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+        self.assertFalse(span.has_duration)
+
+        span.start_time = datetime.datetime.utcnow()
+        self.assertFalse(span.has_duration)
+
+        span.end_time = datetime.datetime.utcnow()
+        self.assertTrue(span.has_duration)
+
+        span.start_time = 123
+        self.assertFalse(span.has_duration)
+
+        span.start_time = datetime.datetime.utcnow()
+        span.end_time = 456
+        self.assertFalse(span.has_duration)
+
+    def test_duration_raises(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+        self.assertRaises(NoDurationError, getattr, span, 'duration')
+
+        span.start_time = datetime.datetime.utcnow()
+        self.assertRaises(NoDurationError, getattr, span, 'duration')
+
+        span.end_time = datetime.datetime.utcnow()
+        self.assertIsNotNone(span.duration)
+
+        span.start_time = None
+        self.assertRaises(NoDurationError, getattr, span, 'duration')
 
 
 if __name__ == '__main__':

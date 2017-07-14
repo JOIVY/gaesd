@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
+import datetime
 import json
 import operator
 import unittest
@@ -9,6 +10,7 @@ from mock import patch
 
 from gaesd.core.span import Span
 from gaesd.core.trace import Trace
+from gaesd.core.utils import InvalidSliceError, datetime_to_float
 from gaesd.sdk import SDK
 
 
@@ -45,6 +47,19 @@ class TestTraceCase(unittest.TestCase):
 
         trace.root_span_id = 456
         self.assertEqual(trace.root_span_id, 456)
+
+        trace.trace_id = 789
+        self.assertEqual(trace.trace_id, 789)
+
+    def test_set_default(self):
+        current_trace = self.sdk.current_trace
+        self.assertNotEqual(current_trace.trace_id, 123)
+        self.assertNotEqual(current_trace.root_span_id, 456)
+
+        self.sdk.current_trace.set_default(trace_id=123, root_span_id=456)
+        self.assertIs(current_trace, self.sdk.current_trace)
+        self.assertEqual(self.sdk.current_trace.trace_id, 123)
+        self.assertEqual(self.sdk.current_trace.root_span_id, 456)
 
     def test_export_empty_spans(self):
         trace_id = Trace.new_trace_id()
@@ -173,6 +188,69 @@ class TestTraceCase(unittest.TestCase):
     def test_str(self):
         trace = self.sdk.current_trace
         self.assertIsNotNone(str(trace))
+
+    def test_getitem_integer(self):
+        trace = self.sdk.current_trace
+        self.assertRaises(IndexError, operator.getitem, trace, 0)
+
+        current_span = trace.current_span
+        self.assertIs(operator.getitem(trace, 0), current_span)
+
+        spans = [current_span] + [trace.span() for _ in range(9)]
+        trace_spans = [trace[i] for i in range(10)]
+
+        self.assertEqual(spans, trace_spans)
+        self.assertRaises(IndexError, operator.getitem, trace, 11)
+
+    def test_getitem_timedelta(self):
+        trace = self.sdk.current_trace
+        td = datetime.timedelta(seconds=1)
+        self.assertEqual(operator.getitem(trace, td), [])
+
+        start_time = datetime.datetime.utcnow()
+
+        spans = []
+
+        for index, _ in enumerate(range(10)):
+            end_time = start_time + datetime.timedelta(seconds=index + 1)
+            spans.append(trace.span(start_time=start_time, end_time=end_time))
+
+        for t in range(10):
+            trace_spans = trace[datetime.timedelta(seconds=t)]
+            self.assertEqual(spans[:t], trace_spans)
+
+    def test_getitem_float(self):
+        trace = self.sdk.current_trace
+        td = datetime.timedelta(seconds=1)
+        self.assertEqual(operator.getitem(trace, td), [])
+
+        start_time = datetime.datetime.utcnow()
+
+        spans = []
+        end_times = []
+
+        for index, _ in enumerate(range(10)):
+            end_time = start_time + datetime.timedelta(seconds=index + 1)
+            end_times.append(datetime_to_float(end_time))
+            spans.append(trace.span(start_time=start_time, end_time=end_time))
+
+        start = datetime_to_float(start_time)
+
+        for t in range(10):
+            stop = end_times[t]
+            trace_spans = trace[start:stop]
+            self.assertEqual(spans[:t], trace_spans)
+
+    def test_getitem_datetime(self):
+        trace = self.sdk.current_trace
+        td = datetime.timedelta(seconds=1)
+        # TODO: !
+
+    def test_getitem_slice_raises(self):
+        trace = self.sdk.current_trace
+        self.assertRaises(InvalidSliceError, operator.getitem, trace, slice(1.0, 2, 3))
+        self.assertRaises(InvalidSliceError, operator.getitem, trace, slice('x', 1, 2))
+        self.assertRaises(InvalidSliceError, operator.getitem, trace, slice(0, 'y', 2))
 
 
 if __name__ == '__main__':

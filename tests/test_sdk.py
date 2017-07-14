@@ -80,8 +80,8 @@ class TestSDKTestCase(unittest.TestCase):
         new_trace = sdk.trace(trace_id=Trace.new_trace_id())
         self.assertIsNot(trace, new_trace)
         self.assertEqual(len(sdk._trace_ids), 2)
-        self.assertIs(sdk._data.traces[0], trace)
-        self.assertIs(sdk._data.traces[1], new_trace)
+        self.assertIs(sdk._context.traces[0], trace)
+        self.assertIs(sdk._context.traces[1], new_trace)
 
     @patch('gaesd.sdk.GoogleApiClientDispatcher.patch_trace')
     def test_patch_trace(self, mock_dispatcher):
@@ -168,13 +168,13 @@ class TestSDKTestCase(unittest.TestCase):
     def test_clear(self):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)
-        self.assertEqual(len(sdk._data.traces), 0)
+        self.assertEqual(len(sdk._context.traces), 0)
 
-        sdk._data.traces.append(1)
-        self.assertEqual(len(sdk._data.traces), 1)
+        sdk._context.traces.append(1)
+        self.assertEqual(len(sdk._context.traces), 1)
 
         sdk.clear()
-        self.assertEqual(len(sdk._data.traces), 0)
+        self.assertEqual(len(sdk._context.traces), 0)
 
     def test_default_dispatcher(self):
         project_id = 'joivy-dev5'
@@ -297,6 +297,14 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)
         self.assertIsNotNone(str(sdk))
+
+    def test_getitem(self):
+        project_id = 'joivy-dev5'
+        sdk = SDK(project_id=project_id, auto=False)
+        self.assertRaises(IndexError, operator.getitem, sdk, 0)
+
+        current_trace = sdk.current_trace
+        self.assertIs(operator.getitem(sdk, 0), current_trace)
 
 
 if __name__ == '__main__':

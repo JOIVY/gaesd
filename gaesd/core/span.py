@@ -8,7 +8,7 @@ import operator
 
 from enum import Enum, unique
 
-from .utils import datetime_to_timestamp
+from .utils import NoDurationError, datetime_to_timestamp
 
 __all__ = ['SpanKind', 'Span']
 
@@ -78,9 +78,32 @@ class Span(object):
     def start_time(self):
         return self._start_time
 
+    @start_time.setter
+    def start_time(self, start_time):
+        self._start_time = start_time
+
     @property
     def end_time(self):
         return self._end_time
+
+    @end_time.setter
+    def end_time(self, end_time):
+        self._end_time = end_time
+
+    @property
+    def duration(self):
+        try:
+            return self.end_time - self.start_time
+        except:
+            raise NoDurationError(self.end_time, self.start_time)
+
+    @property
+    def has_duration(self):
+        try:
+            _ = self.duration
+            return True
+        except NoDurationError:
+            return False
 
     @property
     def span_kind(self):

@@ -42,11 +42,12 @@
 4.  Create the root trace with the `root_trace_id` and set the trace's `root_span_id` for all 
 top-level spans:
     ```
-    trace = sdk.trace(trace_id=root_trace_id, root_span_id=root_span_id)
+    trace = sdk.current_trace.set_default(trace_id=root_trace_id, root_span_id=root_span_id)
     ```
    
 5.  Set the request handler to dispatch the trace data at the end of the request:
     ```
+    # webapp2 example:
     class handler(webapp2.RequestHandler):
         def get(self):
             ...
