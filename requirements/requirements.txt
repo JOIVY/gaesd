@@ -1,3 +1,4 @@
-six
-google-api-python-client
-enum34
+enum34==1.1.6
+google-api-python-client==1.6.2
+decorator==4.1.0
+six==1.10.0

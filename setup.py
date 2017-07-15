@@ -27,6 +27,7 @@ requires = [
     'pip',
     'google_api_python_client',
     'enum34',
+    'decorator',
 ]
 
 about = {}

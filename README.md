@@ -73,6 +73,17 @@ top-level spans:
     
     with top_level_trace.span(name='a'):
         ...
+        
+        
+    or (TODO):
+    
+    @gaesd.decorators.span(name='func_name')
+    def func(x, y, z=1):
+        nested_func()
+        
+    @gaesd.decorators.sub_span(name='nested_func_name')
+    def nested_func(a, b, c=2):
+        ...    
     ```
 
 
