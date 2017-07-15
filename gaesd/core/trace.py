@@ -155,7 +155,7 @@ class Trace(object):
             stop = item.stop
 
             if all([isinstance(i, (datetime.datetime, NoneType)) for i in [start, stop]]):
-                # TODO: Find all spans that start on or after start and before stop (if present).
+                # Find all spans where (span.start>=start) and (stop<span.stop)
                 spans = find_spans_in_datetime_range(self.spans, start, stop)
                 return spans[::step]
             if all([isinstance(i, float) for i in [start, stop]]):

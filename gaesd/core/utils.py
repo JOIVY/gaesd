@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
+
 import datetime
 
 __all__ = ['datetime_to_timestamp']
@@ -31,19 +32,32 @@ def datetime_to_float(dt):
     return total_seconds
 
 
-def find_spans_in_datetime_range(spans, dt_form, dt_to):
+def find_spans_in_datetime_range(spans, dt_from, dt_to):
     result = []
 
     for span in spans:
-        if span.start_time is not None:
-            if span.start_time >= dt_form:
-                result.append(span)
-            elif span.end_time:
-                if dt_to is None:
-                    result.append(span)
-                else:
-                    if span.end_time < dt_to:
-                        result.append(span)
+        span_from = False
+        span_to = False
+
+        if dt_from is not None:
+            if span.start_time is not None:
+                if span.start_time >= dt_from:
+                    span_from = True
+        else:
+            if span.start_time is not None:
+                span_from = True
+
+        if dt_to is not None:
+            if span.end_time is not None:
+                if span.end_time < dt_to:
+                    span_to = True
+        else:
+            if span.end_time is not None:
+                span_to = True
+
+        if span_from and span_to:
+            result.append(span)
+
     return result
 
 

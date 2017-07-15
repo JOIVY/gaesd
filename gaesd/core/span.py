@@ -35,8 +35,9 @@ class Span(object):
         self._labels = labels or {}
 
     def __str__(self):
-        return 'Span({0} from {1})[({2} - {3}) - {4}]'.format(self.span_id, self.parent_span_id,
-            self._start_time, self._end_time, self._span_kind)
+        return 'Span({0}<-{1})[({2} - {3}) - {4}]'.format(
+            self.span_id, self.parent_span_id, self._start_time, self._end_time,
+            self._span_kind.value)
 
     @classmethod
     def new_span_id(cls):

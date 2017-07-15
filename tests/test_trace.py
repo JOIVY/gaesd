@@ -2,6 +2,7 @@
 # -*- coding: latin-1 -*-
 
 import datetime
+import itertools
 import json
 import operator
 import unittest
@@ -241,16 +242,77 @@ class TestTraceCase(unittest.TestCase):
             trace_spans = trace[start:stop]
             self.assertEqual(spans[:t], trace_spans)
 
-    def test_getitem_datetime(self):
-        trace = self.sdk.current_trace
-        td = datetime.timedelta(seconds=1)
-        # TODO: !
-
     def test_getitem_slice_raises(self):
         trace = self.sdk.current_trace
         self.assertRaises(InvalidSliceError, operator.getitem, trace, slice(1.0, 2, 3))
         self.assertRaises(InvalidSliceError, operator.getitem, trace, slice('x', 1, 2))
         self.assertRaises(InvalidSliceError, operator.getitem, trace, slice(0, 'y', 2))
+
+    def test_getitem_datetime_only_upper_bound(self):
+        trace = self.sdk.current_trace
+        all_start_time = datetime.datetime.utcnow()
+
+        all_spans = []
+        start_times = []
+        end_times = []
+
+        for index, _ in enumerate(range(10)):
+            start_time = all_start_time + datetime.timedelta(seconds=index)
+            start_times.append(start_time)
+            end_time = start_time + datetime.timedelta(seconds=5)
+            end_times.append(end_time)
+            all_spans.append(trace.span(start_time=start_time, end_time=end_time))
+
+        for i in range(10):
+            traces = trace[None: end_times[i]]
+            self.assertEqual(len(traces), i)
+            self.assertEqual(traces, all_spans[:i])
+
+        traces = trace[None: end_times[i] + datetime.timedelta(seconds=11)]
+        self.assertEqual(len(traces), 10)
+
+    def test_getitem_datetime_only_lower_bound(self):
+        trace = self.sdk.current_trace
+
+        all_start_time = datetime.datetime.utcnow()
+        all_spans = []
+        start_times = []
+        end_times = []
+
+        for index, _ in enumerate(range(10)):
+            start_time = all_start_time + datetime.timedelta(seconds=index)
+            start_times.append(start_time)
+            end_time = start_time + datetime.timedelta(seconds=5)
+            end_times.append(end_time)
+            all_spans.append(trace.span(start_time=start_time, end_time=end_time))
+
+        for i in range(10):
+            traces = trace[start_times[i]:]
+            self.assertEqual(len(traces), 10 - i)
+
+    def test_getitem_datetime_both_bounds(self):
+        trace = self.sdk.current_trace
+
+        all_start_time = datetime.datetime.utcnow()
+        all_spans = []
+        start_times = []
+        end_times = []
+
+        for index, _ in enumerate(range(10)):
+            start_time = all_start_time + datetime.timedelta(seconds=index)
+            start_times.append(start_time)
+            end_time = start_time + datetime.timedelta(seconds=5)
+            end_times.append(end_time)
+            all_spans.append(trace.span(start_time=start_time, end_time=end_time))
+
+        index_permutations = list(itertools.permutations(range(10), 2))
+        for start, stop in index_permutations:
+            expected_spans = all_spans[start:stop]
+            vector_start = start_times[start]
+            vector_end = end_times[stop]
+            found_spans = trace[vector_start:vector_end]
+
+            self.assertEqual(expected_spans, found_spans)
 
 
 if __name__ == '__main__':
