@@ -11,6 +11,8 @@ from .core.trace import Trace
 
 DEFAULT_ENABLER = True
 
+__all__ = ['SDK']
+
 
 class SDK(object):
     """

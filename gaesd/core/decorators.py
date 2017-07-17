@@ -3,11 +3,14 @@
 
 import six
 
+__all__ = ['Decorators']
+
 
 class Decorators(object):
     """
     Controls decorator creation.
     """
+
     def __init__(self, sdk):
         self._sdk = sdk
 
@@ -67,6 +70,7 @@ class Decorators(object):
         :return: Decorated function.
         :rtype: function
         """
+
         def _new_trace_decorator(func):
             @six.wraps(func)
             def __new_trace_decorator_inner(*args, **kwargs):

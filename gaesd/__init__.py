@@ -15,4 +15,11 @@ from .core.trace import Trace
 from .core.utils import InvalidSliceError, NoDurationError
 from .sdk import SDK
 
-__all__ = ['SDK', 'Span', 'SpanKind', 'Trace', 'InvalidSliceError', 'NoDurationError']
+__all__ = [
+    'SDK',
+    'Span',
+    'SpanKind',
+    'Trace',
+    'InvalidSliceError',
+    'NoDurationError',
+    'DuplicateSpanEntryError']

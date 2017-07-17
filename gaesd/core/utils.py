@@ -3,7 +3,10 @@
 
 import datetime
 
-__all__ = ['datetime_to_timestamp']
+__all__ = [
+    'NoDurationError',
+    'InvalidSliceError',
+    'DuplicateSpanEntryError']
 
 
 class NoDurationError(ValueError):

@@ -5,7 +5,7 @@ import operator
 import unittest
 import uuid
 
-from mock import patch
+from mock import Mock, patch
 from nose_parameterized import parameterized
 
 from gaesd import SDK, Span, Trace
@@ -302,6 +302,31 @@ class TestSDKTestCase(unittest.TestCase):
 
         current_trace = sdk.current_trace
         self.assertIs(operator.getitem(sdk, 0), current_trace)
+
+    @parameterized.expand([
+        (True, True),
+        (False, False),
+        (Mock(return_value=True), True),
+        (Mock(return_value=False), False)
+    ])
+    def test_enabler(self, enabler, e_enabled):
+        project_id = 'joivy-dev5'
+        sdk = SDK(project_id=project_id, auto=False)
+
+        is_enabled = sdk.is_enabled
+        self.assertTrue(is_enabled)
+
+        sdk.set_enabler(False)
+
+        is_enabled = sdk.is_enabled
+        self.assertFalse(is_enabled)
+
+        sdk.set_enabler(enabler)
+
+        is_enabled = sdk.is_enabled
+        self.assertEqual(e_enabled, is_enabled)
+        if isinstance(enabler, Mock):
+            enabler.assert_called_once()
 
 
 if __name__ == '__main__':
