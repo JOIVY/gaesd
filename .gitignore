@@ -20,6 +20,7 @@ var/
 .installed.cfg
 *.egg
 node_modules
+MANIFEST
 
 # TODO folder.
 todo/
@@ -53,7 +54,7 @@ coverage.xml
 *,cover
 .hypothesis/
 .noseids
-
+cover/
 # Translations
 *.mo
 *.pot
