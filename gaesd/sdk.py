@@ -111,11 +111,10 @@ class SDK(object):
         :return: Trace context-manager
         :rtype: gaesd.Trace
         """
-        traces = self._context.traces
-        if traces:
-            return traces[-1]
-
-        return self.trace()
+        try:
+            return self._context.traces[-1]
+        except IndexError:
+            return self.trace()
 
     @property
     def _trace_ids(self):
