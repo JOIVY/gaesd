@@ -6,12 +6,11 @@ import json
 import operator
 import unittest
 
-from gaesd.core.span import Span, SpanKind
-from gaesd.core.utils import datetime_to_timestamp, NoDurationError
-from gaesd.sdk import SDK
+from gaesd import SDK, Span, SpanKind
+from gaesd.core.utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
 
 
-class TestSpanCase(unittest.TestCase):
+class TestSpanTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
         self.sdk = SDK(project_id=self.project_id, auto=False)
@@ -65,9 +64,7 @@ class TestSpanCase(unittest.TestCase):
 
     def test_export(self):
         parent_span_id = Span.new_span_id()
-        parent_span = Span(self.trace, parent_span_id, name='parent')
 
-        labels = {'a': 1, 'b': '2', 'c': None}
         e_labels = {'a': '1', 'b': '2', 'c': 'None'}
         span_kind = SpanKind.server
 
@@ -77,8 +74,10 @@ class TestSpanCase(unittest.TestCase):
         e_end_time = datetime_to_timestamp(end_time)
 
         span_id = Span.new_span_id()
-        span = Span(self.trace, span_id, parent_span_id=parent_span_id, name='child',
-            span_kind=span_kind, start_time=start_time, end_time=end_time, labels=e_labels)
+        span = Span(
+            self.trace, span_id, parent_span_id=parent_span_id, name='child',
+            span_kind=span_kind, start_time=start_time, end_time=end_time, labels=e_labels,
+        )
 
         for data in [span.export(), json.loads(span.json)]:
             self.assertIsInstance(data, {}.__class__)
@@ -110,6 +109,18 @@ class TestSpanCase(unittest.TestCase):
         self.assertIsNotNone(span.start_time)
         self.assertEqual(span.start_time, start_time)
         self.assertIsNotNone(span.end_time)
+
+    def test_context_manager_raises_DuplicateSpanEntryError(self):
+        span = Span(self.trace, Span.new_span_id(), name='bob')
+
+        with span as s:
+            try:
+                with s:
+                    pass
+            except DuplicateSpanEntryError as e:
+                self.assertIs(e.span, span)
+            else:
+                self.assertFalse()
 
     def test_add_raises_ValueError(self):
         span_id = Span.new_span_id()

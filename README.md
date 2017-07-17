@@ -62,12 +62,15 @@ top-level spans:
     with current_span_tree:
         ...
     
+    
     or
+    
     
     current_span_tree.name = 'a'
     with current_span_tree.span(name='b') as span_b:
         with spanb_b.span(name='c') as span_c:
             ...
+    
     
     or
     
@@ -75,18 +78,24 @@ top-level spans:
         ...
         
         
-    or (TODO):
+    or:
     
-    @gaesd.decorators.span(name='func_name')
+    @sdk.decorators.span(name='func_name')
     def func(x, y, z=1):
         nested_func()
         
-    @gaesd.decorators.sub_span(name='nested_func_name')
+    @gaesd.decorators.span(name='nested_func_name', nested=True)
     def nested_func(a, b, c=2):
         ...    
+
+
+    or:
+
+    
+    @sdk.decorators.trace(trace_id='my-unique-id', _create_span=True, _span_args={
+    'name': 'my-span-name'}, 
+    **trace_args)
+    def func(x, y, z=1):
+        ...
+
     ```
-
-
-***TODO***
-
-1.  Create decorators so we can automatically trace methods.

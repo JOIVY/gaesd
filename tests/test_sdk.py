@@ -8,10 +8,8 @@ import uuid
 from mock import patch
 from nose_parameterized import parameterized
 
+from gaesd import SDK, Span, Trace
 from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
-from gaesd.core.span import Span
-from gaesd.core.trace import Trace
-from gaesd.sdk import SDK
 
 
 def raise_exc():
@@ -260,8 +258,7 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'joivy-dev5'
         sdk = SDK(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
-
-        trace = sdk.current_trace
+        trace = sdk.current_trace  # NOQA: F841
         other_trace = sdk.trace()
         span = Span(other_trace, Span.new_span_id())
 

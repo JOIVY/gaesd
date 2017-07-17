@@ -7,13 +7,12 @@ try:
     from googleapiclient import discovery
     from oauth2client.client import GoogleCredentials
 except ImportError as e:
-    print('GoogleApiClientDispatcher not available, please vendor-in required package: ' \
+    print('GoogleApiClientDispatcher not available, please vendor-in required package: '
           '`google_api_python_client` and `oauth2client`')
 else:
     from gaesd.core.dispatchers.dispatcher import Dispatcher
 
     __all__ = ['GoogleApiClientDispatcher']
-
 
     class GoogleApiClientDispatcher(Dispatcher):
         def _prep(self, traces):

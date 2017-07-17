@@ -10,8 +10,9 @@
 #     /\____/
 #     \_/__/
 
-from .sdk import SDK
 from .core.span import Span, SpanKind
 from .core.trace import Trace
+from .core.utils import InvalidSliceError, NoDurationError
+from .sdk import SDK
 
-__all__ = ['SDK', 'Span', 'SpanKind', 'Trace']
+__all__ = ['SDK', 'Span', 'SpanKind', 'Trace', 'InvalidSliceError', 'NoDurationError']

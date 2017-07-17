@@ -8,7 +8,7 @@ import operator
 
 from enum import Enum, unique
 
-from .utils import NoDurationError, datetime_to_timestamp
+from .utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
 
 __all__ = ['SpanKind', 'Span']
 
@@ -23,7 +23,8 @@ class SpanKind(Enum):
 class Span(object):
     _span_ids = itertools.count(1)
 
-    def __init__(self, trace, span_id, parent_span_id=None, name='', span_kind=None,
+    def __init__(
+            self, trace, span_id, parent_span_id=None, name='', span_kind=None,
             start_time=None, end_time=None, labels=None):
         self._trace = trace
         self._span_id = span_id
@@ -101,7 +102,7 @@ class Span(object):
     @property
     def has_duration(self):
         try:
-            _ = self.duration
+            _ = self.duration  # NOQA: F841
             return True
         except NoDurationError:
             return False
@@ -133,6 +134,9 @@ class Span(object):
         return json.dumps(self.export())
 
     def __enter__(self):
+        if self._start_time is not None:
+            raise DuplicateSpanEntryError(self)
+
         self._start_time = datetime.datetime.utcnow()
         return self
 

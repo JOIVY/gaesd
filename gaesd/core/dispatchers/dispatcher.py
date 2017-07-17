@@ -22,6 +22,10 @@ class Dispatcher(object):
         self._traces = []
 
     @property
+    def traces(self):
+        return self._traces
+
+    @property
     def sdk(self):
         return self._sdk
 

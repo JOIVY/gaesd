@@ -9,13 +9,11 @@ import unittest
 
 from mock import patch
 
-from gaesd.core.span import Span
-from gaesd.core.trace import Trace
-from gaesd.core.utils import InvalidSliceError, datetime_to_float
-from gaesd.sdk import SDK
+from gaesd import InvalidSliceError, SDK, Span, Trace
+from gaesd.core.utils import datetime_to_float
 
 
-class TestTraceCase(unittest.TestCase):
+class TestTraceTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
         self.sdk = SDK(project_id=self.project_id, auto=False)

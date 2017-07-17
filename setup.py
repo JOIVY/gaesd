@@ -27,7 +27,6 @@ requires = [
     'pip',
     'google_api_python_client',
     'enum34',
-    'decorator',
 ]
 
 about = {}
@@ -48,7 +47,6 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'Programming Language:: Python:: 2.6',
         'Programming Language:: Python:: 2.7',
         'Programming Language :: Python :: Implementation :: CPython',
     ],

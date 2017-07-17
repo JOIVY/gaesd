@@ -19,6 +19,17 @@ class InvalidSliceError(TypeError):
     def __init__(self, s):
         super(InvalidSliceError, self).__init__(
             'Invalid slice {slice}'.format(slice=s))
+        self._slice = s
+
+    def slice(self):
+        return self._slice
+
+
+class DuplicateSpanEntryError(RuntimeError):
+    def __init__(self, span):
+        super(DuplicateSpanEntryError, self).__init__(
+            'Already entered this span\'s context: {span}'.format(span=span))
+        self.span = span
 
 
 def datetime_to_timestamp(dt):
