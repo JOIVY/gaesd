@@ -72,6 +72,10 @@ class Span(object):
             self.span_id, self.parent_span_id, self._start_time, self._end_time,
             self._span_kind.value)
 
+    @property
+    def sdk(self):
+        return self.trace.sdk
+        
     @classmethod
     def new_span_id(cls):
         return cls._span_ids.next()
@@ -233,3 +237,7 @@ class Span(object):
     def __ilshift__(self, other):
         operator.lshift(self, other)
         return self
+
+    @property
+    def decorators(self):
+        return SpanDecorators(self)

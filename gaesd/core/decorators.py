@@ -3,7 +3,7 @@
 
 import six
 
-__all__ = ['Decorators']
+__all__ = ['Decorators', 'TraceDecorators', 'SpanDecorators']
 
 
 class Decorators(object):
@@ -14,7 +14,7 @@ class Decorators(object):
     def __init__(self, sdk):
         self._sdk = sdk
 
-    def span(self, name=None, nested=True, **span_args):
+    def span(self, name=None, nested=True, trace=None, **span_args):
         """
         Decorate a callable so that a new (nested) span context is automatically created for it.
         Decorator.
@@ -25,6 +25,8 @@ class Decorators(object):
         :type name: Union[function, str]
         :param nested: True=Create a nested span under the current span.
         :type nested: bool
+        :param trace: Optional Trace to nest the span under.
+        :type trace: gaesd.Trace
         :param span_args: kwargs passed directly to the Span constructor.
         :return: Decorated function.
         :rtype: function
@@ -44,8 +46,12 @@ class Decorators(object):
                         parent_span = self._sdk.current_span
                         span_args.setdefault('parent_span', parent_span)
 
-                with self._sdk.span(**span_args):
-                    return func(*args, **kwargs)
+                if trace is not None:
+                    with trace.span(**span_args):
+                        return func(*args, **kwargs)
+                else:
+                    with self._sdk.span(**span_args):
+                        return func(*args, **kwargs)
 
             return __new_span_decorator_inner
 
@@ -90,3 +96,28 @@ class Decorators(object):
             return _new_trace_decorator(trace_id)
         else:
             return _new_trace_decorator
+
+
+class TraceDecorators(Decorators):
+    def __init__(self, trace):
+        super(TraceDecorators, self).__init__(trace.sdk)
+        self._trace = trace
+
+    def trace(self, trace_id=None, _create_span=False, _span_args=None, **trace_args):
+        raise NotImplementedError()
+
+    def span(self, name=None, nested=True, **span_args):
+        span_args['trace'] = self._trace
+        return super(TraceDecorators, self).span(name=name, nested=True, **span_args)
+
+
+class SpanDecorators(Decorators):
+    def __init__(self, span):
+        super(SpanDecorators, self).__init__(span.trace.sdk)
+        self._span = span
+
+    def trace(self, trace_id=None, _create_span=False, _span_args=None, **trace_args):
+        raise NotImplementedError()
+
+    def span(self, name=None, nested=True, **span_args):
+        raise NotImplementedError()

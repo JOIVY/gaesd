@@ -54,7 +54,7 @@ top-level spans:
             sdk()        # Dispatches to StackDriver API.
     ```
 
-6.  Use the sdk api where you want to trace the code:
+6.  Use the sdk api where you want:
     ```
     top_level_trace = sdk.current_trace             # Get the current trace
     current_span_tree = sdk.current_span            # Get the current span
@@ -93,9 +93,25 @@ top-level spans:
 
     
     @sdk.decorators.trace(trace_id='my-unique-id', _create_span=True, _span_args={
-    'name': 'my-span-name'}, 
-    **trace_args)
+    'name': 'my-span-name'}, **trace_args)
     def func(x, y, z=1):
         ...
+    
+    
+    or
+    
+    
+    @sdk.decorators.span(trace=my_trace, _span_args={'name': 'my-span-name'})
+    def func(x, y, z=1):
+        ...
+
+
+    or
+    
+    
+    @top_level_trace.span(name='my-span-name')
+    def func(x, y, z=1):
+        ...
+
 
     ```

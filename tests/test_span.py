@@ -29,6 +29,7 @@ class TestSpanTestCase(unittest.TestCase):
         self.assertEqual(span.span_kind, SpanKind.unspecified)
         self.assertEqual(len(span.labels), 0)
         self.assertEqual(span.project_id, self.project_id)
+        self.assertEqual(span.sdk, self.sdk)
 
     def test_setters(self):
         span = Span.new(self.trace, Span.new_span_id())

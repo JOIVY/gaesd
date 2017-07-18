@@ -8,6 +8,7 @@ import uuid
 from logging import getLogger
 from types import NoneType
 
+from gaesd.core.decorators import TraceDecorators
 from .span import Span
 from .utils import InvalidSliceError, find_spans_in_datetime_range, find_spans_in_float_range, \
     find_spans_with_duration_less_than
@@ -132,7 +133,9 @@ class Trace(object):
         """
         parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
 
-        span = Span.new(self, Span.new_span_id(), parent_span_id, **span_args)
+        span = Span.new(trace=self, span_id=Span.new_span_id(), parent_span_id=parent_span_id,
+            **span_args)
+
         self._spans.append(span)
         self._add_new_span_to_span_tree(span)
         return span
@@ -235,3 +238,7 @@ class Trace(object):
             return spans
 
         return self._spans[item]
+
+    @property
+    def decorators(self):
+        return TraceDecorators(self)
