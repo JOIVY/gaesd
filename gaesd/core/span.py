@@ -9,6 +9,7 @@ from logging import getLogger
 
 from enum import Enum, unique
 
+from gaesd.core.decorators import SpanDecorators
 from .utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
 
 __all__ = ['SpanKind', 'Span']
@@ -75,7 +76,7 @@ class Span(object):
     @property
     def sdk(self):
         return self.trace.sdk
-        
+
     @classmethod
     def new_span_id(cls):
         return cls._span_ids.next()

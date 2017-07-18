@@ -21,7 +21,7 @@ class Decorators(object):
         Call with or without brackets.
         If `nested` is True, will set the default span_args['parent_span'] (not overriding it).
 
-        :param name: StackDriver name of the span. Default=None.
+        :param name: StackDriver name of the span. Default=name of decorated method.
         :type name: Union[function, str]
         :param nested: True=Create a nested span under the current span.
         :type nested: bool
@@ -120,4 +120,9 @@ class SpanDecorators(Decorators):
         raise NotImplementedError()
 
     def span(self, name=None, nested=True, **span_args):
-        raise NotImplementedError()
+        span_args['trace'] = self._span.trace
+        if 'parent_span' in span_args:
+            raise TypeError('parent_span_id is overwritten by this decorator')
+
+        span_args['parent_span'] = self._span
+        return super(SpanDecorators, self).span(name=name, nested=True, **span_args)

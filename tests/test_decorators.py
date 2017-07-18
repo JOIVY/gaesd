@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
-import abc
 import unittest
 
 import six
@@ -79,11 +78,9 @@ class TestDecoratorsSDKTraceTestCase(DecoratorsCaseBase, unittest.TestCase):
 
 
 class DecoratorsSpanBase(DecoratorsCaseBase):
-    @abc.abstractmethod
     def decorate_no_brackets(self, func):
         """"""
 
-    @abc.abstractmethod
     def decorate_with_brackets(self, func):
         """"""
 
@@ -237,13 +234,81 @@ class TestDecoratorsSDKSpanTestCase(DecoratorsSpanBase, unittest.TestCase):
 
 class TestDecoratorsTraceSpanTestCase(DecoratorsSpanBase, unittest.TestCase):
     def decorate_no_brackets(self, func):
-        current_trace = self.sdk.current_trace
-        return current_trace.decorators.span(func)
+        return self.sdk.current_trace.decorators.span(func)
 
     def decorate_with_brackets(self, func, **kwargs):
-        current_trace = self.sdk.current_trace
-        return current_trace.decorators.span(**kwargs)(func)
+        return self.sdk.current_trace.decorators.span(**kwargs)(func)
 
+
+class TestDecoratorsSpanSpanTestCase(DecoratorsCaseBase, unittest.TestCase):
+    def decorate_no_brackets(self, func, span_id):
+        current_span = self.sdk.current_span
+        current_span._span_id = span_id
+        return current_span.decorators.span(func)
+
+    def decorate_with_brackets(self, func, span_id, **kwargs):
+        current_span = self.sdk.current_span
+        current_span._span_id = span_id
+        return current_span.decorators.span(**kwargs)(func)
+
+    def test_no_brackets(self):
+        self.sdk.current_trace.root_span_id = 'nothing'
+
+        def func_a(a, c=1, d='two'):
+            self.assertEqual(a, 'z')
+            self.assertEqual(c, 2)
+            self.assertEqual(d, 'three')
+            return 123
+
+        func_a = self.decorate_no_brackets(func_a, 'smith')
+        result = func_a('z', c=2, d='three')
+        self.assertEqual(result, 123)
+
+        traces = self.sdk.dispatcher.traces
+        self.assertEqual(len(traces), 1)
+        spans = traces[0].spans
+        self.assertEqual(len(spans), 2)
+        self.assertEqual(spans[1].name, 'func_a')
+        self.assertEqual(spans[1].parent_span_id, 'smith')
+
+    def test_brackets(self):
+        parent_span_id = 789
+        self.sdk.current_trace.root_span_id = parent_span_id
+
+        # @current_trace.decorators.span(name='bob', nested=True)
+        def func_a(a, c=1, d='two'):
+            self.assertEqual(a, 'y')
+            self.assertEqual(c, 3)
+            self.assertEqual(d, 'four')
+            return 567
+
+        span_id = 789
+        func_a = self.decorate_with_brackets(func_a, span_id, name='bob', nested=True)
+
+        result = func_a('y', c=3, d='four')
+        self.assertEqual(result, 567)
+
+        traces = self.sdk.dispatcher.traces
+        self.assertEqual(len(traces), 1)
+        spans = traces[0].spans
+        self.assertEqual(len(spans), 2)
+        self.assertEqual(spans[1].name, 'bob')
+        self.assertEqual(spans[1].parent_span_id, span_id)
+
+    def test_parent_span_id_raises_TypeError(self):
+        parent_span_id = 789
+        self.sdk.current_trace.root_span_id = parent_span_id
+
+        # @current_trace.decorators.span(name='bob', nested=True, parent_span='invalidParentSpan')
+        def func_a(a, c=1, d='two'):
+            self.assertEqual(a, 'y')
+            self.assertEqual(c, 3)
+            self.assertEqual(d, 'four')
+            return 567
+
+        span_id = 789
+        self.assertRaises(TypeError, self.decorate_with_brackets, func_a, span_id,
+            parent_span='invalidParentSpan', name='bob', nested=True)
 
 
 if __name__ == '__main__':
