@@ -16,12 +16,12 @@ from gaesd.core.utils import datetime_to_float
 class TestTraceTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
-        self.sdk = SDK(project_id=self.project_id, auto=False)
+        self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
     def test_init(self):
         trace_id = Trace.new_trace_id()
 
-        trace = Trace(self.sdk, trace_id=trace_id, root_span_id=123)
+        trace = Trace.new(self.sdk, trace_id=trace_id, root_span_id=123)
 
         self.assertEqual(trace.trace_id, trace_id)
         self.assertEqual(trace.sdk, self.sdk)
@@ -32,7 +32,7 @@ class TestTraceTestCase(unittest.TestCase):
     @patch('gaesd.sdk.SDK.patch_trace')
     def test_patch_trace(self, mock_patch_trace):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         trace.end()
         mock_patch_trace.assert_called_once()
@@ -41,7 +41,7 @@ class TestTraceTestCase(unittest.TestCase):
     def test_setters(self):
         trace_id = Trace.new_trace_id()
 
-        trace = Trace(self.sdk, trace_id=trace_id, root_span_id=123)
+        trace = Trace.new(self.sdk, trace_id=trace_id, root_span_id=123)
         self.assertEqual(trace.root_span_id, 123)
 
         trace.root_span_id = 456
@@ -62,7 +62,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_export_empty_spans(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         for data in [trace.export(), json.loads(trace.json)]:
             self.assertIsInstance(data, {}.__class__)
@@ -76,7 +76,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_span_no_parent(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
         parent_span = None
 
         span = trace.span(parent_span=parent_span)
@@ -86,7 +86,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_span_no_parent_with_root_span_id(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id, root_span_id=123)
+        trace = Trace.new(self.sdk, trace_id=trace_id, root_span_id=123)
         parent_span = None
 
         span = trace.span(parent_span=parent_span)
@@ -96,8 +96,8 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_span_parent(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
-        parent_span = Span(trace, Span.new_span_id())
+        trace = Trace.new(self.sdk, trace_id=trace_id)
+        parent_span = Span.new(trace, Span.new_span_id())
 
         span = trace.span(parent_span=parent_span)
         self.assertIsInstance(span, Span)
@@ -107,7 +107,7 @@ class TestTraceTestCase(unittest.TestCase):
     @patch('gaesd.sdk.SDK.patch_trace')
     def test_context_manager(self, mock_patch_trace):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         with trace as t:
             self.assertIs(trace, t)
@@ -118,7 +118,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_len(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         self.assertEqual(len(trace), 0)
         self.assertFalse(trace)
@@ -129,7 +129,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_add_raises_ValueError(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         span = trace.span()
         self.assertIn(span, trace.spans)
@@ -138,7 +138,7 @@ class TestTraceTestCase(unittest.TestCase):
 
     def test_add_raises_TypeError(self):
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         self.assertRaises(TypeError, operator.add, trace, 1)
 
@@ -146,13 +146,13 @@ class TestTraceTestCase(unittest.TestCase):
         trace = self.sdk.current_trace
 
         span_id = Span.new_span_id()
-        span_a = Span(trace, span_id)
+        span_a = Span.new(trace, span_id)
 
         operator.add(trace, span_a)
         self.assertEqual(len(trace), 1)
 
         new_span_id = Span.new_span_id()
-        span_b = Span(trace, new_span_id)
+        span_b = Span.new(trace, new_span_id)
         operator.add(trace, span_b)
         self.assertEqual(len(trace), 2)
 
@@ -165,7 +165,7 @@ class TestTraceTestCase(unittest.TestCase):
         trace = self.sdk.current_trace
 
         span_id = Span.new_span_id()
-        span = Span(trace, span_id)
+        span = Span.new(trace, span_id)
 
         self.assertRaises(ValueError, operator.sub, trace, span)
 

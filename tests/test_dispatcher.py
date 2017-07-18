@@ -15,7 +15,7 @@ from gaesd.sdk import SDK
 class TestDispatcherTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
-        self.sdk = SDK(project_id=self.project_id, auto=False)
+        self.sdk = SDK.new(project_id=self.project_id, auto=False)
         self.assertIsInstance(self.sdk.dispatcher, GoogleApiClientDispatcher)
 
     @parameterized.expand([
@@ -23,7 +23,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         (True, False),
     ])
     def test_init(self, auto, enabler):
-        sdk = SDK(project_id=self.project_id, auto=auto, enabler=enabler)
+        sdk = SDK.new(project_id=self.project_id, auto=auto, enabler=enabler)
         dispatcher = SimpleRestDispatcher(sdk=sdk, auto=auto)
 
         self.assertEqual(dispatcher.sdk, sdk)
@@ -43,7 +43,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         self.assertTrue(dispatcher.auto)
 
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         dispatcher.patch_trace(trace)
         mock_dispatch.assert_called_once_with([trace])
@@ -54,7 +54,7 @@ class TestDispatcherTestCase(unittest.TestCase):
         self.assertFalse(dispatcher.auto)
 
         trace_id = Trace.new_trace_id()
-        trace = Trace(self.sdk, trace_id=trace_id)
+        trace = Trace.new(self.sdk, trace_id=trace_id)
 
         dispatcher.patch_trace(trace)
         mock_dispatch.assert_not_called()

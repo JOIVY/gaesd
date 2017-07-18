@@ -12,7 +12,7 @@ from gaesd.sdk import SDK
 class TestDecoratorsSpanTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
-        self.sdk = SDK(project_id=self.project_id, auto=False)
+        self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
     def test_no_brackets(self):
         self.sdk.current_trace.root_span_id = 'smith'
@@ -58,7 +58,7 @@ class TestDecoratorsSpanTestCase(unittest.TestCase):
     def test_brackets_nested_not_override_default_parent_span(self):
         self.sdk.current_trace.root_span_id = 'smith'
         parent_span_id = 1234
-        parent_span = Span(self.sdk.current_trace, span_id=parent_span_id)
+        parent_span = Span.new(self.sdk.current_trace, span_id=parent_span_id)
 
         @self.sdk.decorators.span(name='bob', nested=True, parent_span=parent_span)
         def func_a(a, c=1, d='two'):
@@ -144,7 +144,7 @@ class TestDecoratorsSpanTestCase(unittest.TestCase):
 class TestDecoratorsTraceTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
-        self.sdk = SDK(project_id=self.project_id, auto=False)
+        self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
     def test_no_brackets_does_not_create_span(self):
         @self.sdk.decorators.trace

@@ -3,6 +3,7 @@
 
 import operator
 import threading
+from logging import getLogger
 
 from .core.decorators import Decorators
 from .core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
@@ -39,6 +40,16 @@ class SDK(object):
         self.clear()
         self._context.dispatcher = dispatcher(sdk=self, auto=auto)
         self._context.enabler = enabler
+
+    @property
+    def logger(self):
+        return getLogger('StackDriver-SDK({my_id})'.format(my_id=id(self)))
+
+    @classmethod
+    def new(cls, *args, **kwargs):
+        sdk = cls(*args, **kwargs)
+        sdk.logger.debug('Created {sdk}'.format(sdk=sdk))
+        return sdk
 
     def __str__(self):
         return 'Trace-SDK({0})[{1}]'.format(
@@ -130,7 +141,7 @@ class SDK(object):
         :return: Trace context-manager
         :rtype: core.trace.Trace
         """
-        trace = Trace(self, **trace_args)
+        trace = Trace.new(self, **trace_args)
         trace_id = trace.trace_id
 
         if trace_id in self._trace_ids:
@@ -200,6 +211,11 @@ class SDK(object):
         return len(self._context.traces)
 
     def __add__(self, other):
+        """
+        Add a trace to the current SDK context context.
+        or
+        Add a span to the current trace (with side effects).
+        """
         if isinstance(other, Trace):
             trace_id = other.trace_id
             if trace_id in self._trace_ids:

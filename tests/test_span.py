@@ -13,13 +13,13 @@ from gaesd.core.utils import DuplicateSpanEntryError, NoDurationError, datetime_
 class TestSpanTestCase(unittest.TestCase):
     def setUp(self):
         self.project_id = 'joivy-dev5'
-        self.sdk = SDK(project_id=self.project_id, auto=False)
+        self.sdk = SDK.new(project_id=self.project_id, auto=False)
         self.trace = self.sdk.current_trace
 
     def test_init(self):
         span_id = Span.new_span_id()
 
-        span = Span(self.trace, span_id)
+        span = Span.new(self.trace, span_id)
         self.assertIs(span.trace, self.trace)
         self.assertEqual(span.span_id, span_id)
         self.assertIsNone(span.parent_span_id)
@@ -31,7 +31,7 @@ class TestSpanTestCase(unittest.TestCase):
         self.assertEqual(span.project_id, self.project_id)
 
     def test_setters(self):
-        span = Span(self.trace, Span.new_span_id())
+        span = Span.new(self.trace, Span.new_span_id())
         self.assertEqual(span.name, '')
 
         new_name = '1324'
@@ -47,7 +47,7 @@ class TestSpanTestCase(unittest.TestCase):
         self.assertEqual(span.span_kind, SpanKind.client)
 
         self.assertIsNone(span.parent_span_id)
-        new_span = Span(self.trace, Span.new_span_id())
+        new_span = Span.new(self.trace, Span.new_span_id())
         span.parent_span_id = new_span.span_id
         self.assertIs(span.parent_span_id, new_span.span_id)
 
@@ -74,7 +74,7 @@ class TestSpanTestCase(unittest.TestCase):
         e_end_time = datetime_to_timestamp(end_time)
 
         span_id = Span.new_span_id()
-        span = Span(
+        span = Span.new(
             self.trace, span_id, parent_span_id=parent_span_id, name='child',
             span_kind=span_kind, start_time=start_time, end_time=end_time, labels=e_labels,
         )
@@ -96,7 +96,7 @@ class TestSpanTestCase(unittest.TestCase):
     def test_context_manager(self):
         parent_span_id = Span.new_span_id()
 
-        span = Span(self.trace, parent_span_id, name='parent')
+        span = Span.new(self.trace, parent_span_id, name='parent')
         self.assertIsNone(span.start_time)
         self.assertIsNone(span.end_time)
 
@@ -111,7 +111,7 @@ class TestSpanTestCase(unittest.TestCase):
         self.assertIsNotNone(span.end_time)
 
     def test_context_manager_raises_DuplicateSpanEntryError(self):
-        span = Span(self.trace, Span.new_span_id(), name='bob')
+        span = Span.new(self.trace, Span.new_span_id(), name='bob')
 
         with span as s:
             try:
@@ -125,25 +125,25 @@ class TestSpanTestCase(unittest.TestCase):
     def test_add_raises_ValueError(self):
         span_id = Span.new_span_id()
 
-        span = Span(self.trace, span_id)
+        span = Span.new(self.trace, span_id)
         self.assertRaises(TypeError, operator.add, span, 1)
 
     def test_add_span(self):
         span_id = Span.new_span_id()
-        parent_span = Span(self.trace, span_id)
+        parent_span = Span.new(self.trace, span_id)
 
         new_span_id = Span.new_span_id()
-        span = Span(self.trace, new_span_id)
+        span = Span.new(self.trace, new_span_id)
 
         operator.add(parent_span, span)
         self.assertIs(span.parent_span, parent_span)
 
     def test_rshift_span(self):
         span_id = Span.new_span_id()
-        span_a = Span(self.trace, span_id)
+        span_a = Span.new(self.trace, span_id)
 
         new_span_id = Span.new_span_id()
-        span_b = Span(self.trace, new_span_id)
+        span_b = Span.new(self.trace, new_span_id)
 
         operator.rshift(span_a, span_b)
         self.assertIs(span_a.parent_span, span_b)
@@ -151,7 +151,7 @@ class TestSpanTestCase(unittest.TestCase):
     def test_rshift_trace(self):
         trace = self.sdk.current_trace
         other_trace = self.sdk.current_trace
-        span = Span(other_trace, Span.new_span_id())
+        span = Span.new(other_trace, Span.new_span_id())
 
         operator.rshift(span, trace)
         self.assertIn(span, trace.spans)
@@ -159,16 +159,16 @@ class TestSpanTestCase(unittest.TestCase):
 
     def test_rshift_raises(self):
         span_id = Span.new_span_id()
-        span_a = Span(self.trace, span_id)
+        span_a = Span.new(self.trace, span_id)
 
         self.assertRaises(TypeError, operator.rshift, span_a, 1)
 
     def test_lshift_span(self):
         span_id = Span.new_span_id()
-        span_a = Span(self.trace, span_id)
+        span_a = Span.new(self.trace, span_id)
 
         new_span_id = Span.new_span_id()
-        span_b = Span(self.trace, new_span_id)
+        span_b = Span.new(self.trace, new_span_id)
 
         operator.lshift(span_b, span_a)
         self.assertIs(span_a.parent_span, span_b)

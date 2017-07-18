@@ -10,15 +10,21 @@ __all__ = [
 
 
 class NoDurationError(ValueError):
-    def __init__(self, start_time, end_time):
+    """
+    There was an error calculating the span's duration.
+    """
+
+    def __init__(self, span):
         super(NoDurationError, self).__init__(
             'Span has no duration ({start_time} -> {end_time})'.format(
-                start_time=start_time, end_time=end_time))
-        self.start_time = start_time
-        self.end_time = end_time
+                start_time=span.start_time, end_time=span.end_time))
+        self.span = span
 
 
 class InvalidSliceError(TypeError):
+    """
+    The slice's start, stop & step combination is not supported.
+    """
     def __init__(self, s):
         super(InvalidSliceError, self).__init__(
             'Invalid slice {slice}'.format(slice=s))
@@ -29,6 +35,9 @@ class InvalidSliceError(TypeError):
 
 
 class DuplicateSpanEntryError(RuntimeError):
+    """
+    The span's context is already entered.
+    """
     def __init__(self, span):
         super(DuplicateSpanEntryError, self).__init__(
             'Already entered this span\'s context: {span}'.format(span=span))
@@ -36,6 +45,13 @@ class DuplicateSpanEntryError(RuntimeError):
 
 
 def datetime_to_timestamp(dt):
+    """
+    Create a StackDriver compatible timestamp/
+
+    :param dt: datetime object to convert.
+    :type dt: datetime.datetime
+    :rtype: six.string_types
+    """
     return dt.isoformat('T') + 'Z' if dt else None
 
 
@@ -79,23 +95,36 @@ def find_spans_in_float_range(spans, f_form, f_to):
     result = []
 
     for span in spans:
-        if span.start_time is not None:
-            start_time_float = datetime_to_float(span.start_time)
+        span_from = False
+        span_to = False
+
+        if f_form is not None:
+            if span.start_time is not None:
+                start_time_float = datetime_to_float(span.start_time)
+
+                if start_time_float >= f_form:
+                    span_from = True
+        else:
+            if span.start_time is not None:
+                span_from = True
+
+        if f_to is not None:
             end_time_float = datetime_to_float(span.end_time)
 
-            if start_time_float >= f_form:
-                if end_time_float:
-                    if f_to is None:
-                        result.append(span)
-                    else:
-                        if end_time_float < f_to:
-                            result.append(span)
-                else:
-                    result.append(span)
+            if end_time_float is not None:
+                if end_time_float < f_to:
+                    span_to = True
+        else:
+            if span.end_time is not None:
+                span_to = True
+
+        if span_from and span_to:
+            result.append(span)
+
     return result
 
 
-def find_spans_with_duration(spans, td):
+def find_spans_with_duration_less_than(spans, td):
     result = []
 
     for span in spans:

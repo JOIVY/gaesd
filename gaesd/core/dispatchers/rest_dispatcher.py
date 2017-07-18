@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
+import abc
 from collections import namedtuple
 
 from gaesd.core.dispatchers.dispatcher import Dispatcher
@@ -21,6 +22,7 @@ class RestDispatcher(Dispatcher):
             {'traces': [trace.export() for trace in traces]}
         )
 
+    @abc.abstractmethod
     def _dispatch(self, traces):
         """
         Override this method to dispatch using your own mechanism.

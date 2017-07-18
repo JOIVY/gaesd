@@ -2,6 +2,7 @@
 # -*- coding: latin-1 -*-
 
 import abc
+from logging import getLogger
 
 import six
 
@@ -20,6 +21,10 @@ class Dispatcher(object):
         self._sdk = sdk
         self._auto = auto
         self._traces = []
+
+    @classmethod
+    def logger(cls):
+        return getLogger(cls.__name__)
 
     @property
     def traces(self):
@@ -48,7 +53,7 @@ class Dispatcher(object):
     def __call__(self):
         # Call this from the thread of the request handler.
         if self.is_enabled:
-            print('dispatching')
+            self.logger().debug('Forced immediate dispatch')
             self._dispatch(self._traces)
         self._traces = []
 
@@ -66,12 +71,12 @@ class Dispatcher(object):
     def patch_trace(self, trace):
         if self.auto:
             # Dispatch immediately:
-            print('Immediate dispatch')
+            self.logger().debug('Immediate dispatch')
             self._dispatch([trace])
         else:
             if trace in self._traces:
                 # Trace already cached!
                 return
             # Dispatch when called:
-            print('Delayed dispatch')
+            self.logger().debug('Delayed dispatch')
             self._traces.append(trace)

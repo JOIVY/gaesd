@@ -5,6 +5,7 @@ import datetime
 import itertools
 import json
 import operator
+from logging import getLogger
 
 from enum import Enum, unique
 
@@ -21,11 +22,32 @@ class SpanKind(Enum):
 
 
 class Span(object):
+    """
+    Representation of a StackDriver Span object.
+    """
     _span_ids = itertools.count(1)
 
     def __init__(
-            self, trace, span_id, parent_span_id=None, name='', span_kind=None,
-            start_time=None, end_time=None, labels=None):
+            self, trace, span_id, parent_span_id=None, name='', span_kind=None, start_time=None,
+            end_time=None, labels=None):
+        """
+        :param trace: The Trace object containing this Span object
+        :type trace: gaesdk.Trace
+        :param span_id: StackDriver spanId
+        :type span_id: Union[six.str_types(int), int]
+        :param parent_span_id: StackDriver parent spanId
+        :type parent_span_id: Union[six.str_types(int), int]
+        :param name: StackDriver span name
+        :type name: six.str_types
+        :param span_kind: StackDriver SpanKind
+        :type span_kind: Union[SpanKind, six.str_types]
+        :param start_time: StackDriver startTime of this span
+        :type start_time: datetime.datetime
+        :param end_time: StackDriver endTime of this span
+        :type end_time: datetime.datetime
+        :param labels: labels to associate with this span.
+        :type labels: dict
+        """
         self._trace = trace
         self._span_id = span_id
         self._parent_span_id = parent_span_id
@@ -34,6 +56,16 @@ class Span(object):
         self._end_time = end_time
         self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
         self._labels = labels or {}
+
+    @property
+    def logger(self):
+        return getLogger('Span({my_id})'.format(my_id=id(self)))
+
+    @classmethod
+    def new(cls, *args, **kwargs):
+        span = cls(*args, **kwargs)
+        span.logger.debug('Created {span}'.format(span=span))
+        return span
 
     def __str__(self):
         return 'Span({0}<-{1})[({2} - {3}) - {4}]'.format(
@@ -97,7 +129,7 @@ class Span(object):
         try:
             return self.end_time - self.start_time
         except:
-            raise NoDurationError(self.end_time, self.start_time)
+            raise NoDurationError(self)
 
     @property
     def has_duration(self):

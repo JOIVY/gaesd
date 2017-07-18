@@ -5,22 +5,44 @@ import datetime
 import json
 import operator
 import uuid
+from logging import getLogger
 from types import NoneType
 
 from .span import Span
 from .utils import InvalidSliceError, find_spans_in_datetime_range, find_spans_in_float_range, \
-    find_spans_with_duration
+    find_spans_with_duration_less_than
 
 __all__ = ['Trace']
 
 
 class Trace(object):
+    """
+    Representation of a StackDriver Trace object.
+    """
     def __init__(self, sdk, trace_id=None, root_span_id=None):
+        """
+        :param sdk: Instance of SDK.
+        :type sdk: gaesd.SDK
+        :param trace_id: TraceId
+        :type trace_id: str
+        :param root_span_id: Default span_id to give a trace's top level spans.
+        :type root_span_id: str/int
+        """
         self._sdk = sdk
         self._spans = []
         self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
         self._root_span_id = root_span_id
         self._span_tree = []
+
+    @property
+    def logger(self):
+        return getLogger('Trace({my_id})'.format(my_id=id(self)))
+
+    @classmethod
+    def new(cls, *args, **kwargs):
+        trace = cls(*args, **kwargs)
+        trace.logger.debug('Created {trace}'.format(trace=trace))
+        return trace
 
     def __str__(self):
         return 'Trace({0} with root {2})[{1}]'.format(
@@ -62,10 +84,23 @@ class Trace(object):
 
     @property
     def current_span(self):
+        """
+        Get the current span for this trace.
+
+        :note: Has side effects!
+        :return: The span
+        :rtype: gaesd.Span
+        """
         return self._span_tree[-1] if self._span_tree else self.sdk.new_span
 
     @property
     def span_ids(self):
+        """
+        Retrieve the current span_ids in this Trace
+
+        :return: span ids
+        :rtype: list(str(int)/int)
+        """
         return [span.span_id for span in self._spans]
 
     @property
@@ -85,10 +120,19 @@ class Trace(object):
             if self._span_tree[-1] is span:
                 self._span_tree.pop(-1)
 
-    def span(self, parent_span=None, **kwargs):
+    def span(self, parent_span=None, **span_args):
+        """
+        Create a new span for this trace and make it the current_span.
+
+        :param parent_span: Optional parent span
+        :type parent_span: gaesd.Span
+        :param span_args: Passed directly to the Span constructor.
+        :return: The new span
+        :rtype: gaesd.Span
+        """
         parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
 
-        span = Span(self, Span.new_span_id(), parent_span_id, **kwargs)
+        span = Span.new(self, Span.new_span_id(), parent_span_id, **span_args)
         self._spans.append(span)
         self._add_new_span_to_span_tree(span)
         return span
@@ -115,6 +159,12 @@ class Trace(object):
         self._remove_span_from_span_tree(span)
 
     def __add__(self, other):
+        """
+        Add a span to the current Trace and make it the current_span.
+
+        :param other: The span to add.
+        :type other: gaesd.Span
+        """
         if not isinstance(other, Span):
             raise TypeError('{0} is not an instance of Span'.format(other))
 
@@ -133,6 +183,12 @@ class Trace(object):
         return len(self.spans)
 
     def __sub__(self, other):
+        """
+        Remove the span from the current Trace and attempt to make it not the current_span.
+
+        :param other: The span to remove.
+        :type other: gaesd.Span
+        """
         if not isinstance(other, Span):
             raise TypeError('{0} is not an instance of Span'.format(other))
 
@@ -148,6 +204,16 @@ class Trace(object):
             yield span
 
     def __getitem__(self, item):
+        """
+        Get a span from this trace based on various criteria:
+
+        1. slice(datetime.datetime/None, datetime.datetime/None, whatever):
+            Find spans contained entirely within the date range. None = ignore.
+        2. slice(float, float):
+            Find spans contained entirely within the floating point timestamp range. None = ignore.
+        3.  datetime.timedelta:
+            Find spans with a duration <= this timedelta.
+        """
         if isinstance(item, slice):
             # Get spans that filter as the slice:
             start = item.start
@@ -165,7 +231,7 @@ class Trace(object):
                 raise InvalidSliceError('Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
             # Find all spans that have a duration less than item
-            spans = find_spans_with_duration(self.spans, item)
+            spans = find_spans_with_duration_less_than(self.spans, item)
             return spans
 
         return self._spans[item]

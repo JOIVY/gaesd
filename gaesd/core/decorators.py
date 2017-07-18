@@ -8,7 +8,7 @@ __all__ = ['Decorators']
 
 class Decorators(object):
     """
-    Controls decorator creation.
+    Encapsulation of decorator creation.
     """
 
     def __init__(self, sdk):
@@ -21,7 +21,7 @@ class Decorators(object):
         Call with or without brackets.
         If `nested` is True, will set the default span_args['parent_span'] (not overriding it).
 
-        :param name: Name of the span. Default=None.
+        :param name: StackDriver name of the span. Default=None.
         :type name: Union[function, str]
         :param nested: True=Create a nested span under the current span.
         :type nested: bool
