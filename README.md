@@ -80,11 +80,11 @@ top-level spans:
         
     or:
     
-    @sdk.decorators.span(name='func_name')
+    @sdk.decorators.span(name='span_name')
     def func(x, y, z=1):
         nested_func()
         
-    @gaesd.decorators.span(name='nested_func_name', nested=True)
+    @gaesd.decorators.span(name='nested_span_name', nested=True)
     def nested_func(a, b, c=2):
         ...    
 
@@ -93,7 +93,7 @@ top-level spans:
 
     
     @sdk.decorators.trace(trace_id='my-unique-id', _create_span=True, _span_args={
-    'name': 'my-span-name'}, **trace_args)
+    'name': 'span_name'}, **trace_args)
     def func(x, y, z=1):
         ...
     
@@ -101,7 +101,7 @@ top-level spans:
     or
     
     
-    @sdk.decorators.span(trace=my_trace, _span_args={'name': 'my-span-name'})
+    @sdk.decorators.span(trace=my_trace, _span_args={'name': 'span_name'})
     def func(x, y, z=1):
         ...
 
@@ -109,7 +109,15 @@ top-level spans:
     or
     
     
-    @top_level_trace.span(name='my-span-name')
+    @top_level_trace.span(name='span_name')
+    def func(x, y, z=1):
+        ...
+
+
+    or
+    
+    
+    @current_span.span(name='nested_span_name')
     def func(x, y, z=1):
         ...
 
