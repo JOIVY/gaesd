@@ -239,6 +239,13 @@ class TestDecoratorsTraceSpanTestCase(DecoratorsSpanBase, unittest.TestCase):
     def decorate_with_brackets(self, func, **kwargs):
         return self.sdk.current_trace.decorators.span(**kwargs)(func)
 
+    def test_trace_trace_raises_NotImplementedError(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.sdk.current_trace.decorators.trace, lambda: None, None,
+            parent_span='invalidParentSpan', name='bob', nested=True
+        )
+
 
 class TestDecoratorsSpanSpanTestCase(DecoratorsCaseBase, unittest.TestCase):
     def decorate_no_brackets(self, func, span_id):
@@ -299,17 +306,19 @@ class TestDecoratorsSpanSpanTestCase(DecoratorsCaseBase, unittest.TestCase):
         parent_span_id = 789
         self.sdk.current_trace.root_span_id = parent_span_id
 
-        # @current_trace.decorators.span(name='bob', nested=True, parent_span='invalidParentSpan')
-        def func_a(a, c=1, d='two'):
-            self.assertEqual(a, 'y')
-            self.assertEqual(c, 3)
-            self.assertEqual(d, 'four')
-            return 567
-
         span_id = 789
-        self.assertRaises(TypeError, self.decorate_with_brackets, func_a, span_id,
-            parent_span='invalidParentSpan', name='bob', nested=True)
+        self.assertRaises(
+            TypeError,
+            self.decorate_with_brackets, lambda: None, span_id,
+            parent_span='invalidParentSpan', name='bob', nested=True
+        )
 
+    def test_span_trace_raises_NotImplementedError(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.sdk.current_span.decorators.trace, lambda: None, None,
+            parent_span='invalidParentSpan', name='bob', nested=True
+        )
 
 if __name__ == '__main__':
     unittest.main()

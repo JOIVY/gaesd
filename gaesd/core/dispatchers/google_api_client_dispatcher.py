@@ -6,7 +6,7 @@ from __future__ import print_function
 try:
     from googleapiclient import discovery
     from oauth2client.client import GoogleCredentials
-except ImportError as e:
+except ImportError as e: # pragma: no cover
     print('GoogleApiClientDispatcher not available, please vendor-in required package: '
           '`google_api_python_client` and `oauth2client`')
 else:

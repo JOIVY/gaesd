@@ -66,7 +66,7 @@ class Dispatcher(object):
         :type traces: [core.trace.Trace]
         :return: None
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def patch_trace(self, trace):
         if self.auto:

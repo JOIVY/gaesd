@@ -3,7 +3,7 @@
 
 import unittest
 
-from mock import patch
+from mock import Mock, patch
 from nose_parameterized import parameterized
 
 from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
@@ -37,6 +37,9 @@ class TestDispatcherTestCase(unittest.TestCase):
         dispatcher.auto = False
         self.assertFalse(dispatcher.auto)
 
+        dispatcher.sdk = 123
+        self.assertEqual(dispatcher.sdk, 123)
+
     @patch('gaesd.core.dispatchers.rest_dispatcher.SimpleRestDispatcher._dispatch')
     def test_auto_dispatch(self, mock_dispatch):
         dispatcher = SimpleRestDispatcher(sdk=self.sdk, auto=True)
@@ -58,6 +61,16 @@ class TestDispatcherTestCase(unittest.TestCase):
 
         dispatcher.patch_trace(trace)
         mock_dispatch.assert_not_called()
+
+    def test_call_when_enabled(self):
+        sdk = SDK.new(project_id=self.project_id, enabler=True)
+        dispatcher = SimpleRestDispatcher(sdk=sdk, auto=True)
+        mock_method = Mock()
+        dispatcher._dispatch = mock_method
+        dispatcher._traces = [123]
+        dispatcher()
+        mock_method.assert_called_once_with([123])
+        self.assertEqual(dispatcher._traces, [])
 
 
 if __name__ == '__main__':

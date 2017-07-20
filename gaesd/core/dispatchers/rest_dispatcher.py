@@ -11,7 +11,7 @@ PrepData = namedtuple('PrepData', ('url', 'body'))
 __all__ = ['PrepData', 'RestDispatcher', 'SimpleRestDispatcher']
 
 
-class RestDispatcher(Dispatcher):
+class RestDispatcher(Dispatcher):  # pragma: no cover
     _ROOT_URL = 'https://cloudtrace.googleapis.com'
     _PATCH_TRACES_URL = '/v1/projects/{projectId}/traces'
 
@@ -34,6 +34,6 @@ class RestDispatcher(Dispatcher):
         raise NotImplementedError
 
 
-class SimpleRestDispatcher(RestDispatcher):
+class SimpleRestDispatcher(RestDispatcher):  # pragma: no cover
     def _dispatch(self, traces):
         pass

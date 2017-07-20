@@ -230,8 +230,10 @@ class SDK(object):
         operator.add(self, other)
         return self
 
-    # TODO:
     def __lshift__(self, other):
+        """
+        TODO:
+        """
         pass
 
     def __iter__(self):

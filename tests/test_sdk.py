@@ -328,6 +328,14 @@ class TestSDKTestCase(unittest.TestCase):
         if isinstance(enabler, Mock):
             enabler.assert_called_once()
 
+    def test_call_invokes_dispatcher(self):
+        project_id = 'joivy-dev5'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        mock_dispatcher = Mock()
+        sdk._context.dispatcher = mock_dispatcher
+        sdk()
+        mock_dispatcher.assert_called_once_with()
+
 
 if __name__ == '__main__':
     unittest.main()
