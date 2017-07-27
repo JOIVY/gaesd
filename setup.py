@@ -25,7 +25,6 @@ if sys.argv[-1] == 'publish':
 requires = [
     'six',
     'pip',
-    'google_api_python_client',
     'enum34',
 ]
 

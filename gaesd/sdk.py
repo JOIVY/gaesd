@@ -227,14 +227,15 @@ class SDK(object):
             raise TypeError('{0} is not a Trace or Span'.format(other))
 
     def __iadd__(self, other):
+        # TODO: Test this!
         operator.add(self, other)
         return self
 
-    def __lshift__(self, other):
-        """
-        TODO:
-        """
-        pass
+    # def __lshift__(self, other):# pragma: no cover
+    #     """
+    #     TODO:
+    #     """
+    #     pass
 
     def __iter__(self):
         for trace in self._context.traces:

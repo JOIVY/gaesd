@@ -29,10 +29,10 @@ else:
                 },
             )
 
-        def _dispatch(self, traces):
+        def _dispatch(self, traces):  # pragma: no cover
             return self._emit(
                 self._prep(traces),
             )
 
-        def _emit(self, request):
+        def _emit(self, request):  # pragma: no cover
             return request.execute()
