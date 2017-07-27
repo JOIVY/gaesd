@@ -14,7 +14,7 @@ from gaesd.sdk import SDK
 
 class TestDispatcherTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'joivy-dev5'
+        self.project_id = 'my-project'
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
         self.assertIsInstance(self.sdk.dispatcher, GoogleApiClientDispatcher)
 

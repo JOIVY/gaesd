@@ -45,7 +45,7 @@ class MockService(object):
 
 class TestDispatcherTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'joivy-dev5'
+        self.project_id = 'my-project'
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
     @unittest.skipIf(

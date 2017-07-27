@@ -33,7 +33,7 @@ class TestSDKTestCase(unittest.TestCase):
         (False, lambda: raise_exc()),
     ])
     def test_init(self, auto, enabler):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=auto, enabler=enabler)
         self.assertEqual(sdk.project_id, project_id)
         self.assertEqual(len(sdk._trace_ids), 0)
@@ -48,7 +48,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk.is_enabled, is_enabled(enabler))
 
     def test_current_trace_creates(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -57,7 +57,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._trace_ids), 1)
 
     def test_current_trace_finds(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -68,7 +68,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(trace, new_trace)
 
     def test_trace_appends(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -83,7 +83,7 @@ class TestSDKTestCase(unittest.TestCase):
 
     @patch('gaesd.sdk.GoogleApiClientDispatcher.patch_trace')
     def test_patch_trace(self, mock_dispatcher):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -94,7 +94,7 @@ class TestSDKTestCase(unittest.TestCase):
         mock_dispatcher.assert_called_once()
 
     def test_duplicate_trace_id(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -105,7 +105,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(ValueError, sdk.trace, trace_id=trace_id)
 
     def test_span_creates_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -114,7 +114,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._trace_ids), 1)
 
     def test_span_finds_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -128,7 +128,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(span.trace, trace)
 
     def test_span_uses_parent_span(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         parent_span = Span.new(sdk.current_trace, Span.new_span_id())
@@ -138,7 +138,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(span.parent_span_id, parent_span.span_id)
 
     def test_nested_span_uses_parent_span_if_provided(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         parent_span = Span.new(sdk.current_trace, Span.new_span_id())
@@ -152,7 +152,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_nested_span_uses_parent_span_implicitly(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         span = sdk.span()
@@ -164,7 +164,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_clear(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._context.traces), 0)
 
@@ -175,13 +175,13 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._context.traces), 0)
 
     def test_default_dispatcher(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         self.assertIsInstance(sdk.dispatcher, GoogleApiClientDispatcher)
 
     def test_current_span_creates_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -190,7 +190,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._trace_ids), 1)
 
     def test_current_span_finds_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -206,7 +206,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(trace.spans), 1)
 
     def test_new_span_creates_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -215,7 +215,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._trace_ids), 1)
 
     def test_new_span_finds_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
 
@@ -229,7 +229,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(span.trace, trace)
 
     def test_len(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -248,14 +248,14 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 11)
 
     def test_add_raises(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
         self.assertRaises(TypeError, operator.add, sdk, 123)
 
     def test_add_span(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
         trace = sdk.current_trace  # NOQA: F841
@@ -266,7 +266,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIn(span, other_trace.spans)
 
     def test_add_trace(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -277,7 +277,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIn(trace.trace_id, sdk._trace_ids)
 
     def test_add_trace_invalid_trace_id(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -291,12 +291,12 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(ValueError, operator.add, sdk, trace)
 
     def test_str(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertIsNotNone(str(sdk))
 
     def test_getitem(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertRaises(IndexError, operator.getitem, sdk, 0)
 
@@ -310,7 +310,7 @@ class TestSDKTestCase(unittest.TestCase):
         (Mock(return_value=False), False)
     ])
     def test_enabler(self, enabler, e_enabled):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
         is_enabled = sdk.is_enabled
@@ -329,7 +329,7 @@ class TestSDKTestCase(unittest.TestCase):
             enabler.assert_called_once()
 
     def test_call_invokes_dispatcher(self):
-        project_id = 'joivy-dev5'
+        project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         mock_dispatcher = Mock()
         sdk._context.dispatcher = mock_dispatcher

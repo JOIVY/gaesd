@@ -11,7 +11,7 @@ from gaesd.sdk import SDK
 
 class DecoratorsCaseBase(object):
     def setUp(self):
-        self.project_id = 'joivy-dev5'
+        self.project_id = 'my-project'
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
 
