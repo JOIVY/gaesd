@@ -244,6 +244,76 @@ class TestSpanTestCase(unittest.TestCase):
         span.start_time = None
         self.assertRaises(NoDurationError, getattr, span, 'duration')
 
+    def test_iadd_raises_ValueError(self):
+        span_id = Span.new_span_id()
+
+        span = Span.new(self.trace, span_id)
+        self.assertRaises(TypeError, operator.iadd, span, 1)
+
+    def test_iadd_span(self):
+        span_id = Span.new_span_id()
+        parent_span = Span.new(self.trace, span_id)
+
+        new_span_id = Span.new_span_id()
+        span = Span.new(self.trace, new_span_id)
+
+        result = operator.iadd(parent_span, span)
+        self.assertIs(span.parent_span, parent_span)
+        self.assertIsInstance(result, Span)
+
+    def test_irshift_span(self):
+        span_id = Span.new_span_id()
+        span_a = Span.new(self.trace, span_id)
+
+        new_span_id = Span.new_span_id()
+        span_b = Span.new(self.trace, new_span_id)
+
+        result = operator.irshift(span_a, span_b)
+        self.assertIs(span_a.parent_span, span_b)
+        self.assertIsInstance(result, Span)
+
+    def test_irshift_trace(self):
+        trace = self.sdk.current_trace
+        other_trace = self.sdk.current_trace
+        span = Span.new(other_trace, Span.new_span_id())
+
+        result = operator.irshift(span, trace)
+        self.assertIn(span, trace.spans)
+        self.assertIn(span.span_id, trace.span_ids)
+        self.assertIsInstance(result, Span)
+
+    def test_irshift_raises(self):
+        span_id = Span.new_span_id()
+        span_a = Span.new(self.trace, span_id)
+
+        self.assertRaises(TypeError, operator.irshift, span_a, 1)
+
+    def test_ilshift_span(self):
+        span_id = Span.new_span_id()
+        span_a = Span.new(self.trace, span_id)
+
+        new_span_id = Span.new_span_id()
+        span_b = Span.new(self.trace, new_span_id)
+
+        result = operator.ilshift(span_b, span_a)
+        self.assertIs(span_a.parent_span, span_b)
+        self.assertIsInstance(result, Span)
+
+    def test_ilshift_trace(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+
+        result = operator.ilshift(span, trace)
+        self.assertNotIn(span, trace.spans)
+        self.assertNotIn(span.span_id, trace.span_ids)
+        self.assertIsInstance(result, Span)
+
+    def test_ilshift_raises(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+
+        self.assertRaises(TypeError, operator.ilshift, span, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -320,5 +320,6 @@ class TestDecoratorsSpanSpanTestCase(DecoratorsCaseBase, unittest.TestCase):
             parent_span='invalidParentSpan', name='bob', nested=True
         )
 
+
 if __name__ == '__main__':
     unittest.main()

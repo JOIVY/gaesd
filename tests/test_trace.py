@@ -312,6 +312,59 @@ class TestTraceTestCase(unittest.TestCase):
 
             self.assertEqual(expected_spans, found_spans)
 
+    def test_iadd_raises_ValueError(self):
+        trace_id = Trace.new_trace_id()
+        trace = Trace.new(self.sdk, trace_id=trace_id)
+
+        span = trace.span()
+        self.assertIn(span, trace.spans)
+
+        self.assertRaises(ValueError, operator.iadd, trace, span)
+
+    def test_iadd_raises_TypeError(self):
+        trace_id = Trace.new_trace_id()
+        trace = Trace.new(self.sdk, trace_id=trace_id)
+
+        self.assertRaises(TypeError, operator.iadd, trace, 1)
+
+    def test_iadd_span_adds_at_top_level(self):
+        trace = self.sdk.current_trace
+
+        span_id = Span.new_span_id()
+        span_a = Span.new(trace, span_id)
+
+        result = operator.iadd(trace, span_a)
+        self.assertEqual(len(trace), 1)
+        self.assertIsInstance(result, Trace)
+
+        new_span_id = Span.new_span_id()
+        span_b = Span.new(trace, new_span_id)
+
+        operator.iadd(trace, span_b)
+        self.assertEqual(len(trace), 2)
+        self.assertIsInstance(result, Trace)
+
+    def test_isub_raises(self):
+        trace = self.sdk.current_trace
+
+        self.assertRaises(TypeError, operator.isub, trace, 1)
+
+    def test_isub_not_in_trace_raises(self):
+        trace = self.sdk.current_trace
+
+        span_id = Span.new_span_id()
+        span = Span.new(trace, span_id)
+
+        self.assertRaises(ValueError, operator.isub, trace, span)
+
+    def test_isub(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+
+        result = operator.isub(trace, span)
+        self.assertNotIn(span, trace.spans)
+        self.assertIsInstance(result, Trace)
+
 
 if __name__ == '__main__':
     unittest.main()
