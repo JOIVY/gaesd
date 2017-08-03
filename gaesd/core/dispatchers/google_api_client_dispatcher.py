@@ -26,7 +26,8 @@ else:
                 self.__service = discovery.build('cloudtrace', 'v1', credentials=self.__credentials)
 
             project_id = self.sdk.project_id
-            print('PROJECT_ID: {0}'.format(project_id))
+
+            self.logger.debug('PROJECT_ID: {0}'.format(project_id))
             print('BODY: {0}'.format(body))
 
             return self.__service.projects().patchTraces(

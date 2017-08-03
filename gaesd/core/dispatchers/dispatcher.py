@@ -22,9 +22,20 @@ class Dispatcher(object):
         self._auto = auto
         self._traces = []
 
-    @classmethod
-    def logger(cls):
-        return getLogger(cls.__name__)
+    @property
+    def logger(self):
+        my_id = id(self)
+        name = self.__class__.__name__
+        logger_name = '{name}.{my_id}'.format(my_id=my_id, name=name)
+
+        logger = self.sdk.loggers.get(logger_name)
+        if logger is None:
+            self.sdk.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+
+        return self.sdk.loggers[logger_name]
+
+    def set_logging_level(self, level):
+        return self.sdk.set_logging_level(level, prefix=self.__class__.__name__)
 
     @property
     def traces(self):
@@ -53,7 +64,7 @@ class Dispatcher(object):
     def __call__(self):
         # Call this from the thread of the request handler.
         if self.is_enabled:
-            self.logger().debug('Forced immediate dispatch')
+            self.logger.debug('Forced immediate dispatch')
             self._dispatch(self._traces)
         self._traces = []
 
@@ -71,12 +82,12 @@ class Dispatcher(object):
     def patch_trace(self, trace):
         if self.auto:
             # Dispatch immediately:
-            self.logger().debug('Immediate dispatch')
+            self.logger.debug('Immediate dispatch')
             self._dispatch([trace])
         else:
             if trace in self._traces:
                 # Trace already cached!
                 return
             # Dispatch when called:
-            self.logger().debug('Delayed dispatch')
+            self.logger.debug('Delayed dispatch')
             self._traces.append(trace)
