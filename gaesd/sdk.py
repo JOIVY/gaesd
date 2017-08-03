@@ -23,8 +23,7 @@ class SDK(object):
     _context = threading.local()
 
     def __init__(
-            self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True,
-            enabler=DEFAULT_ENABLER):
+        self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=DEFAULT_ENABLER):
         """
         :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
         :type project_id: str
@@ -40,10 +39,30 @@ class SDK(object):
         self.clear()
         self._context.dispatcher = dispatcher(sdk=self, auto=auto)
         self._context.enabler = enabler
+        self._context.loggers = {}
+
+    @property
+    def loggers(self):
+        return self._context.loggers
 
     @property
     def logger(self):
-        return getLogger('StackDriver-SDK({my_id})'.format(my_id=id(self)))
+        my_id = id(self)
+        name = self.__class__.__name__
+        logger_name = '{name}.{my_id}'.format(my_id=my_id, name=name)
+
+        logger = self.loggers.get(logger_name)
+        if logger is None:
+            self.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+
+        return self.loggers[logger_name]
+
+    def set_logging_level(self, level, prefix=None):
+        for logger_name, logger in self.loggers.items():
+            if prefix:
+                if logger_name.split('.')[0] != prefix:
+                    continue
+            logger.setLevel(level)
 
     @classmethod
     def new(cls, *args, **kwargs):
@@ -98,13 +117,19 @@ class SDK(object):
         return self._context.dispatcher
 
     @staticmethod
-    def clear():
+    def clear(traces=True, enabler=True, dispatcher=True, loggers=False):
         """
-        Clear the current thread's context.
+        Clear the current thread's context of the named attributes (resetting them to default
+        values).
         """
-        SDK._context.traces = []
-        SDK._context.enabler = False
-        SDK._context.dispatcher = None
+        if traces:
+            SDK._context.traces = []
+        if enabler:
+            SDK._context.enabler = False
+        if dispatcher:
+            SDK._context.dispatcher = None
+        if loggers:
+            SDK._context.loggers = {}
 
     @property
     def project_id(self):
