@@ -104,7 +104,11 @@ class SDK(object):
 
         :param enabler: Something or a callable that evaluated to bool
         :type enabler: Union[function, bool]
+        :raises: ValueError
         """
+        if enabler is None:
+            raise ValueError('enabler cannot be None')
+
         SDK._context.enabler = enabler
 
     @property
