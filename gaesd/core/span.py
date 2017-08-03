@@ -29,8 +29,9 @@ class Span(object):
     _span_ids = itertools.count(1)
 
     def __init__(
-            self, trace, span_id, parent_span_id=None, name='', span_kind=None, start_time=None,
-            end_time=None, labels=None):
+        self, trace, span_id, parent_span_id=None, name='', span_kind=None, start_time=None,
+        end_time=None, labels=None
+    ):
         """
         :param trace: The Trace object containing this Span object
         :type trace: gaesdk.Trace
@@ -60,7 +61,18 @@ class Span(object):
 
     @property
     def logger(self):
-        return getLogger('Span({my_id})'.format(my_id=id(self)))
+        my_id = id(self)
+        name = self.__class__.__name__
+        logger_name = '{name}.{my_id}'.format(my_id=my_id, name=name)
+
+        logger = self.sdk.loggers.get(logger_name)
+        if logger is None:
+            self.sdk.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+
+        return self.sdk.loggers[logger_name]
+
+    def set_logging_level(self, level):
+        return self.sdk.set_logging_level(level, prefix=self.__class__.__name__)
 
     @classmethod
     def new(cls, *args, **kwargs):

@@ -22,11 +22,17 @@ else:
             if not hasattr(self, '__service'):
                 self.__service = discovery.build('cloudtrace', 'v1', credentials=self.__credentials)
 
+            project_id = self.sdk.project_id
+            body = {
+                'traces': [trace.export() for trace in traces],
+            }
+
+            self.logger.debug('PROJECT_ID: {0}'.format(project_id))
+            self.logger.debug('BODY: {0}'.format(body))
+
             return self.__service.projects().patchTraces(
                 projectId=self.sdk.project_id,
-                body={
-                    'traces': [trace.export() for trace in traces],
-                },
+                body=body,
             )
 
         def _dispatch(self, traces):  # pragma: no cover
