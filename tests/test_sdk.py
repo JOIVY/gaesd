@@ -328,6 +328,12 @@ class TestSDKTestCase(unittest.TestCase):
         if isinstance(enabler, Mock):
             enabler.assert_called_once()
 
+    def test_enabler_raise_ValueError(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+
+        self.assertRaises(ValueError, sdk.set_enabler, None)
+
     def test_call_invokes_dispatcher(self):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
