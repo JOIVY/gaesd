@@ -7,6 +7,7 @@ from logging import getLogger
 
 from .core.decorators import Decorators
 from .core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+from .core.helpers import Helpers
 from .core.span import Span
 from .core.trace import Trace
 
@@ -23,7 +24,8 @@ class SDK(object):
     _context = threading.local()
 
     def __init__(
-        self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=DEFAULT_ENABLER):
+        self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=DEFAULT_ENABLER
+    ):
         """
         :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
         :type project_id: str
@@ -40,6 +42,8 @@ class SDK(object):
         self._context.dispatcher = dispatcher(sdk=self, auto=auto)
         self._context.enabler = enabler
         self._context.loggers = {}
+        self._helpers = Helpers(self)
+        self._decorators = Decorators(self)
 
     @property
     def loggers(self):
@@ -81,7 +85,16 @@ class SDK(object):
 
         :rtype: gaesd.decorators.Decorators
         """
-        return Decorators(self)
+        return self._decorators
+
+    @property
+    def helpers(self):
+        """
+        Retrieve the helpers builder.
+
+        :rtype: gaesd.helpers.Helpers
+        """
+        return self._helpers
 
     @property
     def is_enabled(self):
@@ -98,7 +111,19 @@ class SDK(object):
         except:
             return bool(enabler)
 
-    def set_enabler(self, enabler):
+    @property
+    def enabler(self):
+        """
+        Set the SDK enabler
+
+        :param enabler: Something or a callable that evaluated to bool
+        :type enabler: Union[function, bool]
+        :raises: ValueError
+        """
+        return self.is_enabled
+
+    @enabler.setter
+    def enabler(self, enabler):
         """
         Set the SDK enabler
 

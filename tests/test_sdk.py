@@ -316,12 +316,12 @@ class TestSDKTestCase(unittest.TestCase):
         is_enabled = sdk.is_enabled
         self.assertTrue(is_enabled)
 
-        sdk.set_enabler(False)
+        sdk.enabler = False
 
         is_enabled = sdk.is_enabled
         self.assertFalse(is_enabled)
 
-        sdk.set_enabler(enabler)
+        sdk.enabler = enabler
 
         is_enabled = sdk.is_enabled
         self.assertEqual(e_enabled, is_enabled)
@@ -332,7 +332,10 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
 
-        self.assertRaises(ValueError, sdk.set_enabler, None)
+        def func():
+            sdk.enabler = None
+
+        self.assertRaises(ValueError, func)
 
     def test_call_invokes_dispatcher(self):
         project_id = 'my-project'

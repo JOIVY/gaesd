@@ -8,7 +8,7 @@ __all__ = ['Decorators', 'TraceDecorators', 'SpanDecorators']
 
 class Decorators(object):
     """
-    Encapsulation of decorator creation.
+    Encapsulation of decorator functionality.
     """
 
     def __init__(self, sdk):
