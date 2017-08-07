@@ -34,8 +34,7 @@ class Helpers(object):
         :return: Result from the target function.
         """
         if trace_enabler:
-            @self.sdk.decorator.span(name=name, nested=nested, trace=trace, **span_args)
-            @six.wraps(trace_enabler)
+            @self.sdk.decorators.span(name=name, nested=nested, trace=trace, **span_args)
             def _inner():
                 return func()
 
