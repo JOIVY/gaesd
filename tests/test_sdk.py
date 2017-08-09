@@ -5,6 +5,7 @@ import operator
 import unittest
 import uuid
 
+from logging import getLogger
 from mock import Mock, patch
 from nose_parameterized import parameterized
 
@@ -51,10 +52,12 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
     def test_current_trace_finds(self):
         project_id = 'my-project'
@@ -63,6 +66,7 @@ class TestSDKTestCase(unittest.TestCase):
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
         new_trace = sdk.current_trace
         self.assertIs(trace, new_trace)
@@ -74,12 +78,24 @@ class TestSDKTestCase(unittest.TestCase):
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
         new_trace = sdk.trace(trace_id=Trace.new_trace_id())
         self.assertIsNot(trace, new_trace)
         self.assertEqual(len(sdk._trace_ids), 2)
         self.assertIs(sdk._context.traces[0], trace)
         self.assertIs(sdk._context.traces[1], new_trace)
+
+    def test_new_trace(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk), 0)
+
+        trace = sdk.new_trace
+        self.assertIsInstance(trace, Trace)
+        self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
+        self.assertTrue(trace in sdk)
 
     @patch('gaesd.sdk.GoogleApiClientDispatcher.patch_trace')
     def test_patch_trace(self, mock_dispatcher):
@@ -100,6 +116,7 @@ class TestSDKTestCase(unittest.TestCase):
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
         trace_id = sdk._trace_ids[0]
         self.assertRaises(ValueError, sdk.trace, trace_id=trace_id)
@@ -108,23 +125,28 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         span = sdk.span()
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
     def test_span_finds_trace(self):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
         span = sdk.span()
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
         self.assertIs(span.trace, trace)
 
     def test_span_uses_parent_span(self):
@@ -169,10 +191,61 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk._context.traces), 0)
 
         sdk._context.traces.append(1)
+        sdk._context.enabler = 123
+        sdk._context.dispatcher = '123'
+        sdk._context.loggers = {'a': 1}
         self.assertEqual(len(sdk._context.traces), 1)
+        self.assertEqual(sdk._context.loggers, {'a': 1})
+        self.assertEqual(sdk._context.enabler, 123)
+        self.assertEqual(sdk._context.dispatcher, '123')
 
         sdk.clear()
         self.assertEqual(len(sdk._context.traces), 0)
+        self.assertFalse(sdk._context.enabler)
+        self.assertIsNone(sdk._context.dispatcher)
+        self.assertEqual(sdk._context.loggers, {'a': 1})
+
+    def test_clear_all_set(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk._context.traces), 0)
+
+        sdk._context.traces.append(1)
+        sdk._context.enabler = 123
+        sdk._context.dispatcher = '123'
+        sdk._context.loggers = {'a': 1}
+
+        self.assertEqual(len(sdk._context.traces), 1)
+        self.assertEqual(sdk._context.loggers, {'a': 1})
+        self.assertEqual(sdk._context.enabler, 123)
+        self.assertEqual(sdk._context.dispatcher, '123')
+
+        sdk.clear(traces=True, enabler=True, dispatcher=True, loggers=True)
+        self.assertEqual(len(sdk._context.traces), 0)
+        self.assertFalse(sdk._context.enabler)
+        self.assertIsNone(sdk._context.dispatcher)
+        self.assertEqual(sdk._context.loggers, {})
+
+    def test_clear_all_cleared(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk._context.traces), 0)
+
+        sdk._context.traces.append(1)
+        sdk._context.enabler = 123
+        sdk._context.dispatcher = '123'
+        sdk._context.loggers = {'a': 1}
+
+        self.assertEqual(len(sdk._context.traces), 1)
+        self.assertEqual(sdk._context.loggers, {'a': 1})
+        self.assertEqual(sdk._context.enabler, 123)
+        self.assertEqual(sdk._context.dispatcher, '123')
+
+        sdk.clear(traces=False, enabler=False, dispatcher=False, loggers=False)
+        self.assertEqual(len(sdk._context.traces), 1)
+        self.assertEqual(sdk._context.loggers, {'a': 1})
+        self.assertEqual(sdk._context.enabler, 123)
+        self.assertEqual(sdk._context.dispatcher, '123')
 
     def test_default_dispatcher(self):
         project_id = 'my-project'
@@ -184,24 +257,29 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         span = sdk.current_span
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
     def test_current_span_finds_trace(self):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
         self.assertEqual(len(trace.spans), 0)
 
         span = sdk.current_span
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
         self.assertIs(span.trace, trace)
         self.assertEqual(len(trace.spans), 1)
 
@@ -209,23 +287,28 @@ class TestSDKTestCase(unittest.TestCase):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         span = sdk.new_span
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
     def test_new_span_finds_trace(self):
         project_id = 'my-project'
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
+        self.assertEqual(len(sdk), 0)
 
         trace = sdk.current_trace
         self.assertIsInstance(trace, Trace)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
 
         span = sdk.new_span
         self.assertIsInstance(span, Span)
         self.assertEqual(len(sdk._trace_ids), 1)
+        self.assertEqual(len(sdk), 1)
         self.assertIs(span.trace, trace)
 
     def test_len(self):
@@ -315,11 +398,13 @@ class TestSDKTestCase(unittest.TestCase):
 
         is_enabled = sdk.is_enabled
         self.assertTrue(is_enabled)
+        self.assertTrue(sdk.enabler)
 
         sdk.enabler = False
 
         is_enabled = sdk.is_enabled
         self.assertFalse(is_enabled)
+        self.assertFalse(sdk.enabler)
 
         sdk.enabler = enabler
 
@@ -344,6 +429,160 @@ class TestSDKTestCase(unittest.TestCase):
         sdk._context.dispatcher = mock_dispatcher
         sdk()
         mock_dispatcher.assert_called_once_with()
+
+    def test_traces_is_immutable(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+
+        e_traces = [1, 2, 3, 4]
+        sdk._context.traces = e_traces
+        self.assertEqual(sdk.traces, e_traces)
+
+        traces = sdk.traces
+        self.assertIsNot(traces, [1, 2, 3, 4])
+
+        sdk.traces.append(5)
+        self.assertEqual(sdk.traces, e_traces)
+
+    def test_insert(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk), 0)
+
+        trace = Trace(sdk, 'my-trace-id')
+
+        sdk.insert(0, trace)
+        self.assertEqual(len(sdk), 1)
+        self.assertIs(sdk[0], trace)
+        self.assertTrue(trace in sdk)
+
+        span = sdk.span()
+        self.assertRaises(TypeError, sdk.insert, 0, span)
+        self.assertRaises(TypeError, sdk.insert, 0, 1)
+
+    def test_del(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+
+        self.assertRaises(IndexError, operator.__delitem__, sdk, 0)
+
+        trace = sdk.trace()
+        self.assertEqual(len(sdk), 1)
+        self.assertIs(sdk[0], trace)
+
+        del sdk[0]
+        self.assertEqual(len(sdk), 0)
+        self.assertFalse(trace in sdk)
+
+    def test_get_and_set_item(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+        self.assertEqual(len(sdk), 0)
+
+        trace = Trace(sdk, 'my-trace-id')
+        self.assertEqual(len(sdk), 0)
+        self.assertRaises(IndexError, operator.setitem, sdk, 0, trace)
+
+        trace = sdk.trace()
+        self.assertEqual(len(sdk), 1)
+        self.assertIs(sdk[0], trace)
+
+        trace_new = Trace(sdk, 'my-trace-id')
+        sdk[0] = trace_new
+        self.assertIs(sdk[0], trace_new)
+
+        span = sdk.span()
+        self.assertRaises(TypeError, operator.setitem, sdk, 0, span)
+        self.assertRaises(TypeError, operator.setitem, sdk, 0, 123)
+        self.assertRaises(TypeError, operator.setitem, sdk, 0, 'xyz')
+
+    def test_contains_not_span_or_trace(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+
+        for i in [123, None, 'xyz']:
+            self.assertFalse(i in sdk)
+
+    def test_contains(self):
+        project_id = 'my-project'
+        sdk = SDK.new(project_id=project_id, auto=False)
+
+        # Create 5 traces each with 10 spans:
+        traces = []
+        spans = []
+
+        for i in range(5):
+            trace = sdk.trace(trace_id='my-trace-id-{i}'.format(i=i))
+            spans.extend([trace.span() for _ in range(10)])
+            traces.append(trace)
+
+        self.assertEqual(sdk.traces, traces)
+
+        for trace in traces:
+            self.assertTrue(trace in sdk)
+
+        for span in spans:
+            self.assertTrue(span in sdk)
+
+        # Test for traces and spans not in sdk:
+        trace = Trace(sdk, trace_id='my-trace-id')
+        self.assertFalse(trace in sdk)
+
+        spans = [trace.span(), Span(trace, span_id=123)]
+
+        for span in spans:
+            self.assertFalse(span in sdk)
+
+    def test_set_logging_level(self):
+        project_id_1 = 'my-project-1'
+        sdk_1 = SDK.new(project_id=project_id_1, auto=False)
+        logger_1 = sdk_1.logger
+
+        project_id_2 = 'my-project-2'
+        sdk_2 = SDK.new(project_id=project_id_2, auto=False)
+        logger_2 = sdk_2.logger
+
+        self.assertNotEqual(logger_1, logger_2)
+        self.assertEqual(SDK._context.loggers, sdk_1.loggers)
+        self.assertEqual(SDK._context.loggers, sdk_2.loggers)
+        self.assertEqual(
+            len([i for i in SDK._context.loggers.keys() if i.startswith('SDK.')]),
+            2)
+
+        new_level = 101
+        for logger in SDK._context.loggers.values():
+            self.assertNotEqual(logger.level, new_level)
+
+        SDK.set_logging_level(level=new_level)
+        for logger in SDK._context.loggers.values():
+            self.assertEqual(logger.level, new_level)
+
+    def test_set_logging_level_with_prefix(self):
+        project_id_1 = 'my-project-1'
+        sdk_1 = SDK.new(project_id=project_id_1, auto=False)
+        logger_1 = sdk_1.logger
+
+        project_id_2 = 'my-project-2'
+        sdk_2 = SDK.new(project_id=project_id_2, auto=False)
+        logger_2 = sdk_2.logger
+
+        self.assertNotEqual(logger_1, logger_2)
+        self.assertEqual(SDK._context.loggers, sdk_1.loggers)
+        self.assertEqual(SDK._context.loggers, sdk_2.loggers)
+        self.assertEqual(
+            len([i for i in SDK._context.loggers.keys() if i.startswith('SDK.')]),
+            2)
+
+        SDK._context.loggers['xxx.yyy'] = getLogger('xxx')
+
+        new_level = 101
+        for logger in SDK._context.loggers.values():
+            self.assertNotEqual(logger.level, new_level)
+
+        SDK.set_logging_level(level=new_level, prefix='SDK')
+        for logger in SDK._context.loggers.values():
+            # FIXME: For name='xxx'
+            self.assertEqual(logger.level, new_level)
 
 
 if __name__ == '__main__':

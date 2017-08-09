@@ -41,7 +41,8 @@ class SDK(Callable, MutableSequence):
         self.clear()
         self._context.dispatcher = dispatcher(sdk=self, auto=auto)
         self._context.enabler = enabler
-        self._context.loggers = {}
+        if not hasattr(self._context, 'loggers'):
+            self._context.loggers = {}
         self._helpers = Helpers(self)
         self._decorators = Decorators(self)
 
@@ -57,12 +58,13 @@ class SDK(Callable, MutableSequence):
 
         logger = self.loggers.get(logger_name)
         if logger is None:
-            self.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+            logger = getLogger('{name}'.format(name=logger_name))
+            self.loggers[logger_name] = logger
+        return logger
 
-        return self.loggers[logger_name]
-
-    def set_logging_level(self, level, prefix=None):
-        for logger_name, logger in self.loggers.items():
+    @classmethod
+    def set_logging_level(cls, level, prefix=None):
+        for logger_name, logger in cls._context.loggers.items():
             if prefix:
                 if logger_name.split('.')[0] != prefix:
                     continue
@@ -71,7 +73,6 @@ class SDK(Callable, MutableSequence):
     @classmethod
     def new(cls, *args, **kwargs):
         sdk = cls(*args, **kwargs)
-        sdk.logger.debug('Created {sdk}'.format(sdk=sdk))
         return sdk
 
     def __str__(self):
@@ -104,7 +105,7 @@ class SDK(Callable, MutableSequence):
         :return: True=Enabled, False=disabled (but still accumulating).
         :rtype: bool
         """
-        enabler = SDK._context.enabler
+        enabler = self._context.enabler
 
         try:
             return bool(enabler())
@@ -134,7 +135,7 @@ class SDK(Callable, MutableSequence):
         if enabler is None:
             raise ValueError('enabler cannot be None')
 
-        SDK._context.enabler = enabler
+        self._context.enabler = enabler
 
     @property
     def dispatcher(self):
@@ -187,6 +188,10 @@ class SDK(Callable, MutableSequence):
     def _trace_ids(self):
         return [trace.trace_id for trace in self._context.traces]
 
+    @property
+    def traces(self):
+        return self._context.traces[:]
+
     def trace(self, **trace_args):
         """
         Return a new trace context-manager.
@@ -203,6 +208,10 @@ class SDK(Callable, MutableSequence):
 
         self._context.traces.append(trace)
         return trace
+
+    @property
+    def new_trace(self):
+        return self.trace()
 
     @property
     def current_span(self):
@@ -280,16 +289,16 @@ class SDK(Callable, MutableSequence):
         else:
             raise TypeError('Expecting type Trace or Span but got {t}'.format(t=other))
 
-    def __iadd__(self, other):
+    def __iadd__(self, other):  # pragma: no cover
         # TODO: Test this!
         operator.add(self, other)
         return self
 
-    # def __lshift__(self, other):# pragma: no cover
-    #     """
-    #     TODO:
-    #     """
-    #     pass
+    def __lshift__(self, other):  # pragma: no cover
+        """
+        TODO:
+        """
+        pass
 
     def __iter__(self):
         for trace in self._context.traces:

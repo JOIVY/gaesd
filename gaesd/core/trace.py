@@ -21,6 +21,7 @@ class Trace(MutableSequence):
     """
     Representation of a StackDriver Trace object.
     """
+
     def __init__(self, sdk, trace_id=None, root_span_id=None):
         """
         :param sdk: Instance of SDK.
@@ -145,8 +146,12 @@ class Trace(MutableSequence):
         """
         parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
 
-        span = Span.new(trace=self, span_id=Span.new_span_id(), parent_span_id=parent_span_id,
-            **span_args)
+        span = Span.new(
+            trace=self,
+            span_id=Span.new_span_id(),
+            parent_span_id=parent_span_id,
+            **span_args
+        )
 
         self._spans.append(span)
         self._add_new_span_to_span_tree(span)
