@@ -66,7 +66,13 @@ class Dispatcher(object):
         if self.is_enabled:
             self.logger.debug('Forced immediate dispatch')
             self._dispatch(self._traces)
+            dispatched = True
+        else:
+            dispatched = False
+
         self._traces = []
+
+        return dispatched
 
     @abc.abstractmethod
     def _dispatch(self, traces):

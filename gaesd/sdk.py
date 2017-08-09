@@ -3,6 +3,7 @@
 
 import operator
 import threading
+from collections import Callable, MutableSequence
 from logging import getLogger
 
 from .core.decorators import Decorators
@@ -16,12 +17,11 @@ DEFAULT_ENABLER = True
 __all__ = ['SDK']
 
 
-class SDK(object):
+class SDK(Callable, MutableSequence):
     """
     Thread-aware main class controlling writing data to StackDriver.
     """
-    # thread-local storage:
-    _context = threading.local()
+    _context = threading.local()  # thread-local storage:
 
     def __init__(
         self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=DEFAULT_ENABLER
@@ -278,7 +278,7 @@ class SDK(object):
         elif isinstance(other, Span):
             operator.add(self.current_trace, other)
         else:
-            raise TypeError('{0} is not a Trace or Span'.format(other))
+            raise TypeError('Expecting type Trace or Span but got {t}'.format(t=other))
 
     def __iadd__(self, other):
         # TODO: Test this!
@@ -296,4 +296,25 @@ class SDK(object):
             yield trace
 
     def __getitem__(self, item):
-        return SDK._context.traces[item]
+        return self._context.traces[item]
+
+    def __contains__(self, item):
+        if isinstance(item, Trace):
+            return item in self._context.traces
+        elif isinstance(item, Span):
+            return any([item in span for span in [trace.spans for trace in self._context.traces]])
+        return False
+
+    def __setitem__(self, index, value):
+        if not isinstance(value, Trace):
+            raise TypeError('Can only set item of type=Trace')
+        self._context.traces[index] = value
+
+    def __delitem__(self, index):
+        del self._context.traces[index]
+
+    def insert(self, index, value):
+        'S.insert(index, object) -- insert object before index'
+        if not isinstance(value, Trace):
+            raise TypeError('Can only insert item of type=Trace')
+        self._context.traces.insert(index, value)

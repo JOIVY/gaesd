@@ -5,6 +5,7 @@ import datetime
 import json
 import operator
 import uuid
+from collections import MutableSequence
 from logging import getLogger
 from types import NoneType
 
@@ -16,7 +17,7 @@ from .utils import InvalidSliceError, find_spans_in_datetime_range, find_spans_i
 __all__ = ['Trace']
 
 
-class Trace(object):
+class Trace(MutableSequence):
     """
     Representation of a StackDriver Trace object.
     """
@@ -253,3 +254,17 @@ class Trace(object):
     @property
     def decorators(self):
         return TraceDecorators(self)
+
+    def __setitem__(self, index, value):
+        if not isinstance(value, Span):
+            raise TypeError('Can only insert item of type=Span')
+        self._spans[index] = value
+
+    def __delitem__(self, index):
+        del self._spans[index]
+
+    def insert(self, index, value):
+        'S.insert(index, object) -- insert object before index'
+        if not isinstance(value, Span):
+            raise TypeError('Can only insert item of type=Span')
+        self._spans.insert(index, value)
