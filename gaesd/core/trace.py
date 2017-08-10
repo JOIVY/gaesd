@@ -175,8 +175,8 @@ class Trace(MutableSequence):
         self.end()
 
     def end(self, span=None):
-        self.sdk.patch_trace(self)
         self._remove_span_from_span_tree(span)
+        self.sdk.patch_trace(self)
 
     def __add__(self, other):
         """
@@ -260,6 +260,7 @@ class Trace(MutableSequence):
     def decorators(self):
         return TraceDecorators(self)
 
+    # TODO: Test these:
     def __setitem__(self, index, value):
         if not isinstance(value, Span):
             raise TypeError('Can only insert item of type=Span')
