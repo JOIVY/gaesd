@@ -26,6 +26,8 @@ requires = [
     'six',
     'pip',
     'enum34',
+    'google_api_python_client',
+    'oauth2client',
 ]
 
 about = {}

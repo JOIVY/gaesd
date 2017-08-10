@@ -15,7 +15,8 @@ class Dispatcher(object):
         """
         :param sdk: SDK instance to use
         :type sdk: gaesd.sdk.SDK
-        :param auto: True=dispatch traces immediately upon span completion, False=Otherwise.
+        :param auto: True=dispatch traces immediately upon span completion,
+        False=Otherwise.
         :type auto: bool
         """
         self._sdk = sdk
@@ -30,7 +31,8 @@ class Dispatcher(object):
 
         logger = self.sdk.loggers.get(logger_name)
         if logger is None:
-            self.sdk.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+            self.sdk.loggers[logger_name] = getLogger(
+                '{name}'.format(name=logger_name))
 
         return self.sdk.loggers[logger_name]
 
@@ -39,7 +41,7 @@ class Dispatcher(object):
 
     @property
     def traces(self):
-        return self._traces
+        return self._traces[:]
 
     @property
     def sdk(self):
@@ -65,7 +67,7 @@ class Dispatcher(object):
         # Call this from the thread of the request handler.
         if self.is_enabled:
             self.logger.debug('Forced immediate dispatch')
-            self._dispatch(self._traces)
+            self._dispatch(self.traces)
             dispatched = True
         else:
             dispatched = False

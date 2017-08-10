@@ -30,6 +30,7 @@ class InvalidSliceError(TypeError):
     """
     The slice's start, stop & step combination is not supported.
     """
+
     def __init__(self, s):
         super(InvalidSliceError, self).__init__(
             'Invalid slice {slice}'.format(slice=s))
@@ -40,6 +41,7 @@ class DuplicateSpanEntryError(RuntimeError):
     """
     The span's context is already entered.
     """
+
     def __init__(self, span):
         super(DuplicateSpanEntryError, self).__init__(
             'Already entered this span\'s context: {span}'.format(span=span))
@@ -64,24 +66,28 @@ def datetime_to_float(dt):
     return total_seconds
 
 
-def find_spans_in_datetime_range(spans, dt_from, dt_to):
+def _find_spans_in_datetime_range(spans, from_, to_, func):
     result = []
 
     for span in spans:
         span_from = False
         span_to = False
 
-        if dt_from is not None:
+        if from_ is not None:
             if span.start_time is not None:
-                if span.start_time >= dt_from:
+                start_time = func(span.start_time)
+                # Deliberately `>=` not `>`:
+                if start_time >= from_:
                     span_from = True
         else:
             if span.start_time is not None:
                 span_from = True
 
-        if dt_to is not None:
+        if to_ is not None:
             if span.end_time is not None:
-                if span.end_time < dt_to:
+                end_time = func(span.end_time)
+                # Deliberately `<` not `<=`:
+                if end_time < to_:
                     span_to = True
         else:
             if span.end_time is not None:
@@ -93,50 +99,35 @@ def find_spans_in_datetime_range(spans, dt_from, dt_to):
     return result
 
 
-def find_spans_in_float_range(spans, f_form, f_to):
-    result = []
+def find_spans_in_datetime_range(spans, from_=None, to_=None):
+    return _find_spans_in_datetime_range(
+        spans=spans,
+        from_=from_,
+        to_=to_,
+        func=lambda x: x,
+    )
 
-    for span in spans:
-        span_from = False
-        span_to = False
 
-        if f_form is not None:
-            if span.start_time is not None:
-                start_time_float = datetime_to_float(span.start_time)
-
-                if start_time_float >= f_form:
-                    span_from = True
-        else:
-            if span.start_time is not None:
-                span_from = True
-
-        if f_to is not None:
-            end_time_float = datetime_to_float(span.end_time)
-
-            if end_time_float is not None:
-                if end_time_float < f_to:
-                    span_to = True
-        else:
-            if span.end_time is not None:
-                span_to = True
-
-        if span_from and span_to:
-            result.append(span)
-
-    return result
+def find_spans_in_float_range(spans, from_=None, to_=None):
+    return _find_spans_in_datetime_range(
+        spans=spans,
+        from_=from_,
+        to_=to_,
+        func=datetime_to_float,
+    )
 
 
 def find_spans_with_duration_less_than(spans, duration):
     if isinstance(duration, (FloatType, IntType)):
         duration = datetime.timedelta(seconds=duration)
 
-    result = []
+    results = []
 
     for span in spans:
         try:
             if span.duration <= duration:
-                result.append(span)
+                results.append(span)
         except NoDurationError:
             continue
 
-    return result
+    return results

@@ -4,13 +4,15 @@
 import operator
 import unittest
 import uuid
-
 from logging import getLogger
+
 from mock import Mock, patch
 from nose_parameterized import parameterized
 
 from gaesd import SDK, Span, Trace
 from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+
+PROJECT_ID = 'my-project-id.appspot.com'
 
 
 def raise_exc():
@@ -34,7 +36,7 @@ class TestSDKTestCase(unittest.TestCase):
         (False, lambda: raise_exc()),
     ])
     def test_init(self, auto, enabler):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=auto, enabler=enabler)
         self.assertEqual(sdk.project_id, project_id)
         self.assertEqual(len(sdk._trace_ids), 0)
@@ -49,7 +51,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk.is_enabled, is_enabled(enabler))
 
     def test_current_trace_creates(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -60,7 +62,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 1)
 
     def test_current_trace_finds(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -72,7 +74,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(trace, new_trace)
 
     def test_trace_appends(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -87,7 +89,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(sdk._context.traces[1], new_trace)
 
     def test_new_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -99,7 +101,7 @@ class TestSDKTestCase(unittest.TestCase):
 
     @patch('gaesd.sdk.GoogleApiClientDispatcher.patch_trace')
     def test_patch_trace(self, mock_dispatcher):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -110,7 +112,7 @@ class TestSDKTestCase(unittest.TestCase):
         mock_dispatcher.assert_called_once()
 
     def test_duplicate_trace_id(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         trace = sdk.current_trace
@@ -122,7 +124,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(ValueError, sdk.trace, trace_id=trace_id)
 
     def test_span_creates_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -133,7 +135,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 1)
 
     def test_span_finds_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -150,7 +152,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(span.trace, trace)
 
     def test_span_uses_parent_span(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         parent_span = Span.new(sdk.current_trace, Span.new_span_id())
@@ -160,7 +162,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(span.parent_span_id, parent_span.span_id)
 
     def test_nested_span_uses_parent_span_if_provided(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         parent_span = Span.new(sdk.current_trace, Span.new_span_id())
@@ -174,7 +176,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_nested_span_uses_parent_span_implicitly(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         span = sdk.span()
@@ -186,7 +188,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(nested_span.parent_span_id, span.span_id)
 
     def test_clear(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._context.traces), 0)
 
@@ -206,7 +208,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk._context.loggers, {'a': 1})
 
     def test_clear_all_set(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._context.traces), 0)
 
@@ -227,7 +229,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk._context.loggers, {})
 
     def test_clear_all_cleared(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._context.traces), 0)
 
@@ -248,13 +250,13 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk._context.dispatcher, '123')
 
     def test_default_dispatcher(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         self.assertIsInstance(sdk.dispatcher, GoogleApiClientDispatcher)
 
     def test_current_span_creates_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -265,7 +267,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 1)
 
     def test_current_span_finds_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -284,7 +286,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(trace.spans), 1)
 
     def test_new_span_creates_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -295,7 +297,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 1)
 
     def test_new_span_finds_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk._trace_ids), 0)
         self.assertEqual(len(sdk), 0)
@@ -312,7 +314,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIs(span.trace, trace)
 
     def test_len(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -331,14 +333,14 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(len(sdk), 11)
 
     def test_add_raises(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
         self.assertRaises(TypeError, operator.add, sdk, 123)
 
     def test_add_span(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
         trace = sdk.current_trace  # NOQA: F841
@@ -349,7 +351,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIn(span, other_trace.spans)
 
     def test_add_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -360,7 +362,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertIn(trace.trace_id, sdk._trace_ids)
 
     def test_add_trace_invalid_trace_id(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -374,12 +376,12 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(ValueError, operator.add, sdk, trace)
 
     def test_str(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertIsNotNone(str(sdk))
 
     def test_getitem(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertRaises(IndexError, operator.getitem, sdk, 0)
 
@@ -393,7 +395,7 @@ class TestSDKTestCase(unittest.TestCase):
         (Mock(return_value=False), False)
     ])
     def test_enabler(self, enabler, e_enabled):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         is_enabled = sdk.is_enabled
@@ -414,7 +416,7 @@ class TestSDKTestCase(unittest.TestCase):
             enabler.assert_called_once()
 
     def test_enabler_raise_ValueError(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         def func():
@@ -423,7 +425,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(ValueError, func)
 
     def test_call_invokes_dispatcher(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         mock_dispatcher = Mock()
         sdk._context.dispatcher = mock_dispatcher
@@ -431,7 +433,7 @@ class TestSDKTestCase(unittest.TestCase):
         mock_dispatcher.assert_called_once_with()
 
     def test_traces_is_immutable(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         e_traces = [1, 2, 3, 4]
@@ -445,7 +447,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(sdk.traces, e_traces)
 
     def test_insert(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -461,7 +463,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(TypeError, sdk.insert, 0, 1)
 
     def test_del(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         self.assertRaises(IndexError, operator.__delitem__, sdk, 0)
@@ -475,7 +477,7 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertFalse(trace in sdk)
 
     def test_get_and_set_item(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
         self.assertEqual(len(sdk), 0)
 
@@ -497,14 +499,14 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertRaises(TypeError, operator.setitem, sdk, 0, 'xyz')
 
     def test_contains_not_span_or_trace(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         for i in [123, None, 'xyz']:
             self.assertFalse(i in sdk)
 
     def test_contains(self):
-        project_id = 'my-project'
+        project_id = PROJECT_ID
         sdk = SDK.new(project_id=project_id, auto=False)
 
         # Create 5 traces each with 10 spans:
@@ -589,5 +591,5 @@ class TestSDKTestCase(unittest.TestCase):
                 self.assertEqual(logger.level, 66)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()

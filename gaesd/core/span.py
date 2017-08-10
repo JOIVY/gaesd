@@ -10,7 +10,9 @@ from logging import getLogger
 from enum import Enum, unique
 
 from gaesd.core.decorators import SpanDecorators
-from .utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
+from .utils import (
+    DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp,
+)
 
 __all__ = ['SpanKind', 'Span']
 
@@ -29,8 +31,8 @@ class Span(object):
     _span_ids = itertools.count(1)
 
     def __init__(
-        self, trace, span_id, parent_span_id=None, name='', span_kind=None, start_time=None,
-        end_time=None, labels=None
+        self, trace, span_id, parent_span_id=None, name='', span_kind=None,
+        start_time=None, end_time=None, labels=None
     ):
         """
         :param trace: The Trace object containing this Span object
@@ -56,7 +58,8 @@ class Span(object):
         self._name = name
         self._start_time = start_time
         self._end_time = end_time
-        self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
+        self._span_kind = SpanKind(
+            span_kind) if span_kind is not None else SpanKind.unspecified
         self._labels = labels or {}
 
     @property
@@ -67,7 +70,8 @@ class Span(object):
 
         logger = self.sdk.loggers.get(logger_name)
         if logger is None:
-            self.sdk.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+            self.sdk.loggers[logger_name] = getLogger(
+                '{name}'.format(name=logger_name))
 
         return self.sdk.loggers[logger_name]
 
@@ -83,7 +87,8 @@ class Span(object):
     def __repr__(self):
         return 'Span({0}<-{1})[({2} - {3}) - {4}]'.format(
             self.span_id, self.parent_span_id, self._start_time, self._end_time,
-            self._span_kind.value)
+            self._span_kind.value
+        )
 
     @property
     def sdk(self):
@@ -162,11 +167,14 @@ class Span(object):
 
     @span_kind.setter
     def span_kind(self, span_kind):
-        self._span_kind = SpanKind(span_kind) if span_kind is not None else SpanKind.unspecified
+        self._span_kind = SpanKind(
+            span_kind) if span_kind is not None else SpanKind.unspecified
 
     def export(self):
-        parent_span_id = str(self.parent_span_id) if self.parent_span_id else None
-        labels = dict((str(label), str(label_value)) for label, label_value in self.labels.items())
+        parent_span_id = str(
+            self.parent_span_id) if self.parent_span_id else None
+        labels = dict((str(label), str(label_value)) for label, label_value in
+            self.labels.items())
 
         return {
             'spanId': str(self.span_id),
@@ -191,6 +199,7 @@ class Span(object):
 
     def __exit__(self, t, val, tb):
         self._end_time = datetime.datetime.utcnow()
+
         # Fire of this trace:
         self.trace.end(self)
 

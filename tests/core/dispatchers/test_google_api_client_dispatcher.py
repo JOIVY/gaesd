@@ -12,7 +12,6 @@ try:
 
     canTest = True
 except ImportError as e:  # pragma: no cover
-    # TODO: Test this path !
     logging.warn(
         'Cannot test GoogleApiClientDispatcher - please pip install `google_api_python_client` '
         'and `oauth2client`'
@@ -21,6 +20,8 @@ except ImportError as e:  # pragma: no cover
 
 from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
 from gaesd.sdk import SDK
+
+PROJECT_ID = 'my-project-id.appspot.com'
 
 
 class MockTrace(object):
@@ -45,7 +46,7 @@ class MockService(object):
 
 class TestDispatcherTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'my-project'
+        self.project_id = PROJECT_ID
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
     @unittest.skipIf(
@@ -92,11 +93,11 @@ class TestDispatcherTestCase(unittest.TestCase):
             )
 
         with patch('gaesd.core.dispatchers.google_api_client_dispatcher.discovery.build') as \
-                mock_build:
+            mock_build:
             with patch('gaesd.core.dispatchers.google_api_client_dispatcher.GoogleCredentials'
                        '.get_application_default') as mock_get_application_default:
                 run(mock_build, mock_get_application_default)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()

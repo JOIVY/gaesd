@@ -9,10 +9,12 @@ import unittest
 from gaesd import SDK, Span, SpanKind
 from gaesd.core.utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
 
+PROJECT_ID = 'my-project-id.appspot.com'
+
 
 class TestSpanTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'my-project'
+        self.project_id = PROJECT_ID
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
         self.trace = self.sdk.current_trace
 
@@ -84,7 +86,7 @@ class TestSpanTestCase(unittest.TestCase):
             self.assertIsInstance(data, {}.__class__)
             self.assertSetEqual(
                 set(data.keys()),
-                set(['spanId', 'kind', 'name', 'startTime', 'endTime', 'parentSpanId', 'labels'])
+                {'spanId', 'kind', 'name', 'startTime', 'endTime', 'parentSpanId', 'labels'},
             )
             self.assertEqual(data['spanId'], str(span_id))
             self.assertEqual(data['kind'], span_kind.value)
@@ -121,7 +123,7 @@ class TestSpanTestCase(unittest.TestCase):
             except DuplicateSpanEntryError as e:
                 self.assertIs(e.span, span)
             else:
-                self.assertFalse()
+                assert False
 
     def test_add_raises_ValueError(self):
         span_id = Span.new_span_id()
@@ -325,5 +327,5 @@ class TestSpanTestCase(unittest.TestCase):
         self.assertEqual(span.logger.level, new_level)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()

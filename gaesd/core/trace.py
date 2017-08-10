@@ -31,6 +31,7 @@ class Trace(MutableSequence):
         :param root_span_id: Default span_id to give a trace's top level spans.
         :type root_span_id: str/int
         """
+        super(Trace, self).__init__()
         self._sdk = sdk
         self._spans = []
         self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
@@ -250,7 +251,7 @@ class Trace(MutableSequence):
             if not all([isinstance(i, (int, NoneType)) for i in [start, stop, step]]):
                 raise InvalidSliceError('Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
-            # Find all spans that have a duration less than item
+            # Find all spans that have a duration `<` item
             spans = find_spans_with_duration_less_than(self.spans, item)
             return spans
 
@@ -260,7 +261,6 @@ class Trace(MutableSequence):
     def decorators(self):
         return TraceDecorators(self)
 
-    # TODO: Test these:
     def __setitem__(self, index, value):
         if not isinstance(value, Span):
             raise TypeError('Can only insert item of type=Span')

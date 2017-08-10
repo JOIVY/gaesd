@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: latin-1 -*-
 # pragma: no-cover
 
 __title__ = 'gaesd'

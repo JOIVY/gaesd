@@ -16,12 +16,15 @@ class Decorators(object):
 
     def span(self, name=None, nested=True, trace=None, **span_args):
         """
-        Decorate a callable so that a new (nested) span context is automatically created for it.
+        Decorate a callable so that a new (nested) span context is
+        automatically created for it.
         Decorator.
         Call with or without brackets.
-        If `nested` is True, will set the default span_args['parent_span'] (not overriding it).
+        If `nested` is True, will set the default span_args['parent_span'] (
+        not overriding it).
 
-        :param name: StackDriver name of the span. Default=name of decorated method.
+        :param name: StackDriver name of the span. Default=name of decorated
+        method.
         :type name: Union[function, str]
         :param nested: True=Create a nested span under the current span.
         :type nested: bool
@@ -60,9 +63,12 @@ class Decorators(object):
         else:
             return _new_span_decorator
 
-    def trace(self, trace_id=None, _create_span=False, _span_args=None, **trace_args):
+    def trace(
+        self, trace_id=None, _create_span=False, _span_args=None, **trace_args
+    ):
         """
-        Decorate a callable so that a new trace context is automatically created for it.
+        Decorate a callable so that a new trace context is automatically
+        created for it.
         Decorator.
         Call with or without brackets.
         If `_create_span` is True, will create a new span context.
@@ -103,12 +109,15 @@ class TraceDecorators(Decorators):
         super(TraceDecorators, self).__init__(trace.sdk)
         self._trace = trace
 
-    def trace(self, trace_id=None, _create_span=False, _span_args=None, **trace_args):
+    def trace(
+        self, trace_id=None, _create_span=False, _span_args=None, **trace_args
+    ):
         raise NotImplementedError()
 
     def span(self, name=None, nested=True, **span_args):
         span_args['trace'] = self._trace
-        return super(TraceDecorators, self).span(name=name, nested=True, **span_args)
+        return super(TraceDecorators, self).span(
+            name=name, nested=True, **span_args)
 
 
 class SpanDecorators(Decorators):
@@ -116,7 +125,9 @@ class SpanDecorators(Decorators):
         super(SpanDecorators, self).__init__(span.trace.sdk)
         self._span = span
 
-    def trace(self, trace_id=None, _create_span=False, _span_args=None, **trace_args):
+    def trace(
+        self, trace_id=None, _create_span=False, _span_args=None, **trace_args
+    ):
         raise NotImplementedError()
 
     def span(self, name=None, nested=True, **span_args):
@@ -125,4 +136,5 @@ class SpanDecorators(Decorators):
             raise TypeError('parent_span_id is overwritten by this decorator')
 
         span_args['parent_span'] = self._span
-        return super(SpanDecorators, self).span(name=name, nested=True, **span_args)
+        return super(SpanDecorators, self).span(
+            name=name, nested=True, **span_args)
