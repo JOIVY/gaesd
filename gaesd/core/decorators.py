@@ -14,15 +14,6 @@ class Decorators(object):
     def __init__(self, sdk):
         self._sdk = sdk
 
-    @property
-    def sdk(self):
-        """
-        Retrieve the SDK instance associated with this Decorators instance.
-
-        :rtype: gaesd.SDK
-        """
-        return self._sdk
-
     def span(self, name=None, nested=True, trace=None, **span_args):
         """
         Decorate a callable so that a new (nested) span context is
