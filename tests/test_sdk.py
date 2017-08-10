@@ -560,6 +560,7 @@ class TestSDKTestCase(unittest.TestCase):
     def test_set_logging_level_with_prefix(self):
         project_id_1 = 'my-project-1'
         sdk_1 = SDK.new(project_id=project_id_1, auto=False)
+        SDK.clear(loggers=True)
         logger_1 = sdk_1.logger
 
         project_id_2 = 'my-project-2'
@@ -574,15 +575,19 @@ class TestSDKTestCase(unittest.TestCase):
             2)
 
         SDK._context.loggers['xxx.yyy'] = getLogger('xxx')
+        SDK._context.loggers['xxx.yyy'].setLevel(66)
 
         new_level = 101
         for logger in SDK._context.loggers.values():
             self.assertNotEqual(logger.level, new_level)
 
         SDK.set_logging_level(level=new_level, prefix='SDK')
-        for logger in SDK._context.loggers.values():
+        for logger_name, logger in SDK._context.loggers.items():
             # FIXME: For name='xxx'
-            self.assertEqual(logger.level, new_level)
+            if logger_name.split('.')[0].startswith('SDK'):
+                self.assertEqual(logger.level, new_level)
+            else:
+                self.assertEqual(logger.level, 66)
 
 
 if __name__ == '__main__':
