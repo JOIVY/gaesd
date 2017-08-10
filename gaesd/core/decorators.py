@@ -14,11 +14,22 @@ class Decorators(object):
     def __init__(self, sdk):
         self._sdk = sdk
 
+    @property
+    def sdk(self):
+        """
+        Retrieve the SDK instance associated with this Decorators instance.
+
+        :rtype: gaesd.SDK
+        """
+        return self._sdk
+
     def span(self, name=None, nested=True, trace=None, **span_args):
         """
         Decorate a callable so that a new (nested) span context is
-        automatically created for it.
+            automatically created for it.
+
         Decorator.
+
         Call with or without brackets.
         If `nested` is True, will set the default span_args['parent_span'] (
         not overriding it).
@@ -26,8 +37,7 @@ class Decorators(object):
         :param name: StackDriver name of the span. Default=name of decorated
         method.
         :type name: Union[function, str]
-        :param nested: True=Create a nested span under the current span.
-        :type nested: bool
+        :param bool nested: True=Create a nested span under the current span.
         :param trace: Optional Trace to nest the span under.
         :type trace: gaesd.Trace
         :param span_args: kwargs passed directly to the Span constructor.
@@ -52,16 +62,16 @@ class Decorators(object):
                 if trace is not None:
                     with trace.span(**span_args):
                         return func(*args, **kwargs)
-                else:
-                    with self._sdk.span(**span_args):
-                        return func(*args, **kwargs)
+
+                with self._sdk.span(**span_args):
+                    return func(*args, **kwargs)
 
             return __new_span_decorator_inner
 
         if callable(name):
             return _new_span_decorator(name)
-        else:
-            return _new_span_decorator
+
+        return _new_span_decorator
 
     def trace(
         self, trace_id=None, _create_span=False, _span_args=None, **trace_args
@@ -92,16 +102,16 @@ class Decorators(object):
                 with self._sdk.trace(**trace_args) as trace:
                     if not _create_span:
                         return func(*args, **kwargs)
-                    else:
-                        with trace.span(**_span_args):
-                            return func(*args, **kwargs)
+
+                    with trace.span(**_span_args):
+                        return func(*args, **kwargs)
 
             return __new_trace_decorator_inner
 
         if callable(trace_id):
             return _new_trace_decorator(trace_id)
-        else:
-            return _new_trace_decorator
+
+        return _new_trace_decorator
 
 
 class TraceDecorators(Decorators):

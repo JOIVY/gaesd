@@ -139,7 +139,7 @@ class TestSpanTestCase(unittest.TestCase):
         span = Span.new(self.trace, new_span_id)
 
         operator.add(parent_span, span)
-        self.assertIs(span.parent_span, parent_span)
+        self.assertIs(span.parent_span_id, span_id)
 
     def test_rshift_span(self):
         span_id = Span.new_span_id()
@@ -149,7 +149,7 @@ class TestSpanTestCase(unittest.TestCase):
         span_b = Span.new(self.trace, new_span_id)
 
         operator.rshift(span_a, span_b)
-        self.assertIs(span_a.parent_span, span_b)
+        self.assertIs(span_a.parent_span_id, span_b.span_id)
 
     def test_rshift_trace(self):
         trace = self.sdk.current_trace
@@ -260,7 +260,7 @@ class TestSpanTestCase(unittest.TestCase):
         span = Span.new(self.trace, new_span_id)
 
         result = operator.iadd(parent_span, span)
-        self.assertIs(span.parent_span, parent_span)
+        self.assertIs(span.parent_span_id, span_id)
         self.assertIsInstance(result, Span)
 
     def test_irshift_span(self):
@@ -271,7 +271,7 @@ class TestSpanTestCase(unittest.TestCase):
         span_b = Span.new(self.trace, new_span_id)
 
         result = operator.irshift(span_a, span_b)
-        self.assertIs(span_a.parent_span, span_b)
+        self.assertIs(span_a.parent_span_id, span_b.span_id)
         self.assertIsInstance(result, Span)
 
     def test_irshift_trace(self):

@@ -10,4 +10,3 @@ __author__ = 'Francis Horsman'
 __author_email__ = 'francis.horsman@joivy.com'
 __license__ = 'Restricted'
 __copyright__ = 'Copyright 2017 Joivy Ltd'
-

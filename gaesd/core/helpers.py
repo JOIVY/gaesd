@@ -12,15 +12,15 @@ class Helpers(object):
 
     def __init__(self, sdk):
         """
-        :param sdk: SDK this Helpers belongs to.
-        :type sdk: gaesd.SDK
+        :param gaesd.SDK sdk: SDK this Helpers belongs to.
         """
         self._sdk = sdk
 
     @property
     def sdk(self):
         """
-        Retrieve the current SDK instance.
+        Retrieve the SDK instance associated with this Helpers instance.
+
         :rtype: gaesd.SDK
         """
         return self._sdk
@@ -57,5 +57,5 @@ class Helpers(object):
                 return func(*args, **kwargs)
 
             return _inner(*func_args, **func_kwargs)
-        else:
-            return func(*func_args, **func_kwargs)
+
+        return func(*func_args, **func_kwargs)
