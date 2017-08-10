@@ -2,11 +2,16 @@
 # -*- coding: latin-1 -*-
 
 import datetime
+from types import FloatType, IntType
 
 __all__ = [
     'NoDurationError',
     'InvalidSliceError',
-    'DuplicateSpanEntryError']
+    'DuplicateSpanEntryError',
+    'find_spans_in_datetime_range',
+    'find_spans_in_float_range',
+    'find_spans_with_duration_less_than',
+]
 
 
 class NoDurationError(ValueError):
@@ -28,10 +33,7 @@ class InvalidSliceError(TypeError):
     def __init__(self, s):
         super(InvalidSliceError, self).__init__(
             'Invalid slice {slice}'.format(slice=s))
-        self._slice = s
-
-    def slice(self):
-        return self._slice
+        self.slice = s
 
 
 class DuplicateSpanEntryError(RuntimeError):
@@ -44,7 +46,7 @@ class DuplicateSpanEntryError(RuntimeError):
         self.span = span
 
 
-def datetime_to_timestamp(dt):
+def datetime_to_timestamp(dt=None):
     """
     Create a StackDriver compatible timestamp/
 
@@ -124,12 +126,15 @@ def find_spans_in_float_range(spans, f_form, f_to):
     return result
 
 
-def find_spans_with_duration_less_than(spans, td):
+def find_spans_with_duration_less_than(spans, duration):
+    if isinstance(duration, (FloatType, IntType)):
+        duration = datetime.timedelta(seconds=duration)
+
     result = []
 
     for span in spans:
         try:
-            if span.duration <= td:
+            if span.duration <= duration:
                 result.append(span)
         except NoDurationError:
             continue

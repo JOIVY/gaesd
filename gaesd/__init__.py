@@ -12,7 +12,7 @@
 
 from .core.span import Span, SpanKind
 from .core.trace import Trace
-from .core.utils import InvalidSliceError, NoDurationError
+from .core.utils import InvalidSliceError, NoDurationError, DuplicateSpanEntryError
 from .sdk import SDK
 
 __all__ = [

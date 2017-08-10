@@ -80,7 +80,7 @@ class Span(object):
         span.logger.debug('Created {span}'.format(span=span))
         return span
 
-    def __str__(self):
+    def __repr__(self):
         return 'Span({0}<-{1})[({2} - {3}) - {4}]'.format(
             self.span_id, self.parent_span_id, self._start_time, self._end_time,
             self._span_kind.value)

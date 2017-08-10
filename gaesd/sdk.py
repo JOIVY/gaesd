@@ -75,7 +75,7 @@ class SDK(Callable, MutableSequence):
         sdk = cls(*args, **kwargs)
         return sdk
 
-    def __str__(self):
+    def __repr__(self):
         return 'Trace-SDK({0})[{1}]'.format(
             self.project_id, [str(i) for i in self._trace_ids])
 

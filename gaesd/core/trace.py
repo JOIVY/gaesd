@@ -58,7 +58,7 @@ class Trace(MutableSequence):
         trace.logger.debug('Created {trace}'.format(trace=trace))
         return trace
 
-    def __str__(self):
+    def __repr__(self):
         return 'Trace({0} with root {2})[{1}]'.format(
             self.trace_id, ', '.join([str(i) for i in self.spans]), self._root_span_id)
 
@@ -88,7 +88,7 @@ class Trace(MutableSequence):
 
     @property
     def spans(self):
-        return self._spans
+        return self._spans[:]
 
     def set_default(self, **kwargs):
         if 'trace_id' in kwargs:
@@ -247,7 +247,7 @@ class Trace(MutableSequence):
             if all([isinstance(i, float) for i in [start, stop]]):
                 spans = find_spans_in_float_range(self.spans, start, stop)
                 return spans[::step]
-            if not all([isinstance(i, int) for i in [start, stop, step]]):
+            if not all([isinstance(i, (int, NoneType)) for i in [start, stop, step]]):
                 raise InvalidSliceError('Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
             # Find all spans that have a duration less than item

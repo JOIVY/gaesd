@@ -583,7 +583,6 @@ class TestSDKTestCase(unittest.TestCase):
 
         SDK.set_logging_level(level=new_level, prefix='SDK')
         for logger_name, logger in SDK._context.loggers.items():
-            # FIXME: For name='xxx'
             if logger_name.split('.')[0].startswith('SDK'):
                 self.assertEqual(logger.level, new_level)
             else:

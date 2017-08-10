@@ -314,6 +314,16 @@ class TestSpanTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, operator.ilshift, span, 1)
 
+    def test_set_logging_level(self):
+        trace = self.sdk.current_trace
+        span = trace.span()
+
+        new_level = 66
+        self.assertNotEqual(span.logger.level, new_level)
+
+        span.set_logging_level(new_level)
+        self.assertEqual(span.logger.level, new_level)
+
 
 if __name__ == '__main__':
     unittest.main()
