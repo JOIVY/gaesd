@@ -17,3 +17,4 @@ tox==2.7.0
 vulture
 radon
 pycallgraph
+sphinx==1.6.3
