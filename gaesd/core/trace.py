@@ -5,90 +5,157 @@ import datetime
 import json
 import operator
 import uuid
+from collections import MutableSequence
 from logging import getLogger
 from types import NoneType
 
 from gaesd.core.decorators import TraceDecorators
 from .span import Span
-from .utils import InvalidSliceError, find_spans_in_datetime_range, find_spans_in_float_range, \
-    find_spans_with_duration_less_than
+from .utils import (
+    InvalidSliceError, find_spans_in_datetime_range, find_spans_in_float_range,
+    find_spans_with_duration_less_than,
+)
 
 __all__ = ['Trace']
 
 
-class Trace(object):
+class Trace(MutableSequence):
     """
     Representation of a StackDriver Trace object.
     """
+
     def __init__(self, sdk, trace_id=None, root_span_id=None):
         """
-        :param sdk: Instance of SDK.
-        :type sdk: gaesd.SDK
-        :param trace_id: TraceId
-        :type trace_id: str
-        :param root_span_id: Default span_id to give a trace's top level spans.
-        :type root_span_id: str/int
+        :param SDK sdk: Instance of SDK this trace belongs to.
+        :param six.string_types trace_id: TraceId
+        :param str/int root_span_id: Default span_id to give a trace's top
+            level spans.
         """
+        super(Trace, self).__init__()
         self._sdk = sdk
         self._spans = []
-        self._trace_id = trace_id if trace_id is not None else self.new_trace_id()
+        self._trace_id = trace_id if trace_id is not None else \
+            self.new_trace_id()
         self._root_span_id = root_span_id
         self._span_tree = []
 
     @property
     def logger(self):
+        """
+        Retrieve this trace's logger instance.
+        """
         my_id = id(self)
         name = self.__class__.__name__
         logger_name = '{name}.{my_id}'.format(my_id=my_id, name=name)
 
         logger = self.sdk.loggers.get(logger_name)
         if logger is None:
-            self.sdk.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+            self.sdk.loggers[logger_name] = getLogger(
+                '{name}'.format(name=logger_name))
 
         return self.sdk.loggers[logger_name]
 
     def set_logging_level(self, level):
-        return self.sdk.set_logging_level(level, prefix=self.__class__.__name__)
+        """
+        Set the logging level of this trace's logger.
+
+        :param int level: New logging level to set.
+        """
+        return self.sdk.set_logging_level(
+            level,
+            prefix=self.__class__.__name__,
+        )
 
     @classmethod
     def new(cls, *args, **kwargs):
+        """
+        Create a new instance of this Trace.
+
+        :param args: Passed directly through to the Trace.__init__ method.
+        :param kwargs: Passed directly through to the Trace.__init__ method.
+        :return: A new instance of an Trace class.
+        :rtype: Trace
+        """
         trace = cls(*args, **kwargs)
         trace.logger.debug('Created {trace}'.format(trace=trace))
         return trace
 
-    def __str__(self):
+    def __repr__(self):
         return 'Trace({0} with root {2})[{1}]'.format(
-            self.trace_id, ', '.join([str(i) for i in self.spans]), self._root_span_id)
+            self.trace_id, ', '.join([str(i) for i in self.spans]),
+            self._root_span_id)
 
     @property
     def root_span_id(self):
+        """
+        Retrieve the default root_span_id for this Trace instance.
+
+        :return: Span Id
+        :rtype: int
+        """
         return self._root_span_id
 
     @root_span_id.setter
     def root_span_id(self, span_id):
+        """
+        Set the default root_span_id for this Trace instance.
+
+        :param span_id: The new span id to use.
+        :type span_id: int
+        """
         self._root_span_id = span_id
 
     @staticmethod
     def new_trace_id():
+        """
+        Create a new unique Trace id.
+
+        :rtype: six.string_types
+        """
         return uuid.uuid4().hex
 
     @property
     def trace_id(self):
+        """
+        Retrieve this trace's trace id.
+
+        :rtype: six.string_types
+        """
         return self._trace_id
 
     @trace_id.setter
     def trace_id(self, trace_id):
+        """
+        Set this trace's trace id.
+
+        :param trace_id: The new trace id to use
+        :type trace_id: six.string_types
+        """
         self._trace_id = trace_id
 
     @property
     def sdk(self):
+        """
+        Retrieve the SDK that this Trace is associated with.
+
+        :rtype:  SDK
+        """
         return self._sdk
 
     @property
     def spans(self):
-        return self._spans
+        """
+        Retrieve a list of this trace's spans.
+
+        :return: A shallow-copy list of this Trace's spans.
+        :rtype: list(Span)
+        """
+        return self._spans[:]
 
     def set_default(self, **kwargs):
+        """
+        Set the default trace_id and root_span_id for this Trace instane.
+        """
         if 'trace_id' in kwargs:
             self._trace_id = kwargs['trace_id']
         if 'root_span_id' in kwargs:
@@ -99,9 +166,10 @@ class Trace(object):
         """
         Get the current span for this trace.
 
-        :note: Has side effects!
+        :note: Has side effects
+            A new Span may be created if one does not exist.
         :return: The span
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         return self._span_tree[-1] if self._span_tree else self.sdk.new_span
 
@@ -117,6 +185,12 @@ class Trace(object):
 
     @property
     def project_id(self):
+        """
+        Retrieve the project_id associated with the SDK's associated with this
+        trace instance.
+
+        :rtype: six.string_types
+        """
         return self.sdk.project_id
 
     def _add_new_span_to_span_tree(self, new_span):
@@ -137,21 +211,32 @@ class Trace(object):
         Create a new span for this trace and make it the current_span.
 
         :param parent_span: Optional parent span
-        :type parent_span: gaesd.Span
+        :type parent_span: Span
         :param span_args: Passed directly to the Span constructor.
         :return: The new span
-        :rtype: gaesd.Span
+        :rtype: Span
         """
-        parent_span_id = parent_span.span_id if parent_span is not None else self.root_span_id
+        parent_span_id = parent_span.span_id if parent_span is not None else \
+            self.root_span_id
 
-        span = Span.new(trace=self, span_id=Span.new_span_id(), parent_span_id=parent_span_id,
-            **span_args)
+        span = Span.new(
+            trace=self,
+            span_id=Span.new_span_id(),
+            parent_span_id=parent_span_id,
+            **span_args
+        )
 
         self._spans.append(span)
         self._add_new_span_to_span_tree(span)
         return span
 
     def export(self):
+        """
+        Export this trace instance as a dict.
+
+        :return: This exported Trace's data.
+        :rtype: Dict[str, str]
+        """
         return {
             'projectId': str(self.project_id),
             'traceId': str(self.trace_id),
@@ -160,6 +245,12 @@ class Trace(object):
 
     @property
     def json(self):
+        """
+        Export this trace instance as json.
+
+        :return: This exported Trace's data.
+        :rtype: six.string_types
+        """
         return json.dumps(self.export())
 
     def __enter__(self):
@@ -169,22 +260,28 @@ class Trace(object):
         self.end()
 
     def end(self, span=None):
-        self.sdk.patch_trace(self)
+        """
+        Notify this Trace that it has completed.
+
+        :param Span span: The final span.
+        """
         self._remove_span_from_span_tree(span)
+        self.sdk.patch_trace(self)
 
     def __add__(self, other):
         """
         Add a span to the current Trace and make it the current_span.
 
         :param other: The span to add.
-        :type other: gaesd.Span
+        :type other: Span
         """
         if not isinstance(other, Span):
             raise TypeError('{0} is not an instance of Span'.format(other))
 
         span_id = other.span_id
         if span_id in self.span_ids:
-            raise ValueError('span_id {0} already present in this Trace'.format(span_id))
+            raise ValueError(
+                'span_id {0} already present in this Trace'.format(span_id))
 
         self._spans.append(other)
         self._add_new_span_to_span_tree(other)
@@ -198,13 +295,15 @@ class Trace(object):
 
     def __sub__(self, other):
         """
-        Remove the span from the current Trace and attempt to make it not the current_span.
+        Remove the span from the current Trace and attempt to make it not the
+            current_span.
 
         :param other: The span to remove.
-        :type other: gaesd.Span
+        :type other: Span
         """
         if not isinstance(other, Span):
-            raise TypeError('{0} is not an instance of Span'.format(other))
+            raise TypeError('{other} is not an instance of Span'.format(
+                other=other))
 
         self._spans.remove(other)
         self._remove_span_from_span_tree(other)
@@ -224,7 +323,8 @@ class Trace(object):
         1. slice(datetime.datetime/None, datetime.datetime/None, whatever):
             Find spans contained entirely within the date range. None = ignore.
         2. slice(float, float):
-            Find spans contained entirely within the floating point timestamp range. None = ignore.
+            Find spans contained entirely within the floating point timestamp
+            range. None = ignore.
         3.  datetime.timedelta:
             Find spans with a duration <= this timedelta.
         """
@@ -234,17 +334,24 @@ class Trace(object):
             step = item.step
             stop = item.stop
 
-            if all([isinstance(i, (datetime.datetime, NoneType)) for i in [start, stop]]):
+            if all([
+                isinstance(i, (datetime.datetime, NoneType))
+                for i in [start, stop]]
+            ):
                 # Find all spans where (span.start>=start) and (stop<span.stop)
                 spans = find_spans_in_datetime_range(self.spans, start, stop)
                 return spans[::step]
             if all([isinstance(i, float) for i in [start, stop]]):
                 spans = find_spans_in_float_range(self.spans, start, stop)
                 return spans[::step]
-            if not all([isinstance(i, int) for i in [start, stop, step]]):
-                raise InvalidSliceError('Invalid slice {slice}'.format(slice=slice))
+            if not all([
+                isinstance(i, (int, NoneType))
+                for i in [start, stop, step]]
+            ):
+                raise InvalidSliceError(
+                    'Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
-            # Find all spans that have a duration less than item
+            # Find all spans that have a duration `<` item
             spans = find_spans_with_duration_less_than(self.spans, item)
             return spans
 
@@ -252,4 +359,24 @@ class Trace(object):
 
     @property
     def decorators(self):
+        """
+        Retrieve a TraceDecorators instance associated to this instance.
+
+        :return: A new Decorators instance.
+        :rtype: TraceDecorators
+        """
         return TraceDecorators(self)
+
+    def __setitem__(self, index, value):
+        if not isinstance(value, Span):
+            raise TypeError('Can only insert item of type=Span')
+        self._spans[index] = value
+
+    def __delitem__(self, index):
+        del self._spans[index]
+
+    def insert(self, index, value):
+        'S.insert(index, object) -- insert object before index'
+        if not isinstance(value, Span):
+            raise TypeError('Can only insert item of type=Span')
+        self._spans.insert(index, value)

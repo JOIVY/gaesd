@@ -10,16 +10,35 @@
 #     /\____/
 #     \_/__/
 
+from .core.decorators import Decorators, SpanDecorators, TraceDecorators
+from .core.dispatchers.dispatcher import Dispatcher
+from .core.helpers import Helpers
 from .core.span import Span, SpanKind
 from .core.trace import Trace
-from .core.utils import InvalidSliceError, NoDurationError
+from .core.utils import (
+    DuplicateSpanEntryError, InvalidSliceError, NoDurationError,
+)
 from .sdk import SDK
 
-__all__ = [
+try:
+    from .core.dispatchers.google_api_client_dispatcher import \
+        GoogleApiClientDispatcher
+
+    __all__ = ['GoogleApiClientDispatcher']
+except:  # pragma no-cover
+    __all__ = []
+
+__all__.extend([
     'SDK',
     'Span',
     'SpanKind',
     'Trace',
+    'Dispatcher',
+    'Helpers',
+    'Decorators',
     'InvalidSliceError',
     'NoDurationError',
-    'DuplicateSpanEntryError']
+    'DuplicateSpanEntryError',
+    'TraceDecorators',
+    'SpanDecorators',
+])
