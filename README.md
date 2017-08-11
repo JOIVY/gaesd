@@ -127,3 +127,6 @@ top-level spans:
 
 
     ```
+
+**Build documentation**
+```make sphinx-html```
