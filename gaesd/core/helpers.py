@@ -12,7 +12,7 @@ class Helpers(object):
 
     def __init__(self, sdk):
         """
-        :param gaesd.SDK sdk: SDK this Helpers belongs to.
+        :param SDK sdk: SDK this Helpers belongs to.
         """
         self._sdk = sdk
 
@@ -21,7 +21,7 @@ class Helpers(object):
         """
         Retrieve the SDK instance associated with this Helpers instance.
 
-        :rtype: gaesd.SDK
+        :rtype: SDK
         """
         return self._sdk
 
@@ -32,12 +32,12 @@ class Helpers(object):
         """
         Execute a function conditionally as a span decorated function.
 
-        :param bool trace_enabler: Flag to enable tracing for the given
-        function.
-        :param name: StackDriver name of the span. Default=name of decorated
-        method.
+        :param bool trace_enabler: Enable tracing for the given function.
+        :param name: Name of the span. Default=name of decorated method.
         :type name: Union[function, str]
-        :param Callable func: The target function to execute
+        :param callable func: The target function to execute
+        :param tuple func_args: Passed directly to `func` as args.
+        :param dict func_kwargs: Passed directly to `func` as kwargs.
         :param bool nested: True=Make this span nested.
         :param Trace trace: Optional Trace to nest the span under.
         :param span_args: kwargs passed directly to the Span constructor.

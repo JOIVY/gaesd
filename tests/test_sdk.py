@@ -10,7 +10,8 @@ from mock import Mock, patch
 from nose_parameterized import parameterized
 
 from gaesd import SDK, Span, Trace
-from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+from gaesd.core.dispatchers.google_api_client_dispatcher import \
+    GoogleApiClientDispatcher
 
 PROJECT_ID = 'my-project-id.appspot.com'
 
@@ -548,7 +549,8 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(SDK._context.loggers, sdk_1.loggers)
         self.assertEqual(SDK._context.loggers, sdk_2.loggers)
         self.assertEqual(
-            len([i for i in SDK._context.loggers.keys() if i.startswith('SDK.')]),
+            len([i for i in SDK._context.loggers.keys() if
+                i.startswith('SDK.')]),
             2)
 
         new_level = 101
@@ -573,7 +575,8 @@ class TestSDKTestCase(unittest.TestCase):
         self.assertEqual(SDK._context.loggers, sdk_1.loggers)
         self.assertEqual(SDK._context.loggers, sdk_2.loggers)
         self.assertEqual(
-            len([i for i in SDK._context.loggers.keys() if i.startswith('SDK.')]),
+            len([i for i in SDK._context.loggers.keys() if
+                i.startswith('SDK.')]),
             2)
 
         SDK._context.loggers['xxx.yyy'] = getLogger('xxx')

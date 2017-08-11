@@ -95,7 +95,7 @@ class Span(object):
         :param args: Passed directly through to the Span.__init__ method.
         :param kwargs: Passed directly through to the Span.__init__ method.
         :return: A new instance of an Span class.
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         span = cls(*args, **kwargs)
         span.logger.debug('Created {span}'.format(span=span))
@@ -115,7 +115,7 @@ class Span(object):
         """
         Retrieve the SDK that this Span is associated with.
 
-        :rtype:  gaesd.SDK
+        :rtype:  SDK
         """
         return self.trace.sdk
 
@@ -142,7 +142,7 @@ class Span(object):
         """
         Retrieve the trace that this span is associated with.
 
-        :rtype: gaesd.Trace
+        :rtype: Trace
         """
         return self._trace
 
@@ -332,7 +332,7 @@ class Span(object):
         Create a new nested Span instance on this span's associated trace
             with this span's span_id as the nested span's parent_span_id.
         :param kwargs: Passed directly through to Trace.span.
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         return self.trace.span(parent_span=self, **kwargs)
 
@@ -396,6 +396,6 @@ class Span(object):
         Retrieve a SpanDecorators instance associated to this instance.
 
         :return: A new Decorators instance.
-        :rtype: gaesd.SpanDecorators
+        :rtype: SpanDecorators
         """
         return SpanDecorators(self)

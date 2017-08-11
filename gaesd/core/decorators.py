@@ -17,20 +17,16 @@ class Decorators(object):
     def span(self, name=None, nested=True, trace=None, **span_args):
         """
         Decorate a callable so that a new (nested) span context is
-            automatically created for it.
-
-        Decorator.
+        automatically created for it.
 
         Call with or without brackets.
         If `nested` is True, will set the default span_args['parent_span'] (
         not overriding it).
 
-        :param name: StackDriver name of the span. Default=name of decorated
-        method.
+        :param name: Name of the span. Default=name of decorated method.
         :type name: Union[function, str]
         :param bool nested: True=Create a nested span under the current span.
-        :param trace: Optional Trace to nest the span under.
-        :type trace: gaesd.Trace
+        :param Trace trace: Optional Trace to nest the span under.
         :param span_args: kwargs passed directly to the Span constructor.
         :return: Decorated function.
         :rtype: function
@@ -70,7 +66,7 @@ class Decorators(object):
         """
         Decorate a callable so that a new trace context is automatically
         created for it.
-        Decorator.
+
         Call with or without brackets.
         If `_create_span` is True, will create a new span context.
 

@@ -26,7 +26,7 @@ class Trace(MutableSequence):
 
     def __init__(self, sdk, trace_id=None, root_span_id=None):
         """
-        :param gaesd.SDK sdk: Instance of SDK this trace belongs to.
+        :param SDK sdk: Instance of SDK this trace belongs to.
         :param six.string_types trace_id: TraceId
         :param str/int root_span_id: Default span_id to give a trace's top
             level spans.
@@ -74,7 +74,7 @@ class Trace(MutableSequence):
         :param args: Passed directly through to the Trace.__init__ method.
         :param kwargs: Passed directly through to the Trace.__init__ method.
         :return: A new instance of an Trace class.
-        :rtype: gaesd.Trace
+        :rtype: Trace
         """
         trace = cls(*args, **kwargs)
         trace.logger.debug('Created {trace}'.format(trace=trace))
@@ -138,7 +138,7 @@ class Trace(MutableSequence):
         """
         Retrieve the SDK that this Trace is associated with.
 
-        :rtype:  gaesd.SDK
+        :rtype:  SDK
         """
         return self._sdk
 
@@ -148,7 +148,7 @@ class Trace(MutableSequence):
         Retrieve a list of this trace's spans.
 
         :return: A shallow-copy list of this Trace's spans.
-        :rtype: list(gaesd.Span)
+        :rtype: list(Span)
         """
         return self._spans[:]
 
@@ -169,7 +169,7 @@ class Trace(MutableSequence):
         :note: Has side effects
             A new Span may be created if one does not exist.
         :return: The span
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         return self._span_tree[-1] if self._span_tree else self.sdk.new_span
 
@@ -211,10 +211,10 @@ class Trace(MutableSequence):
         Create a new span for this trace and make it the current_span.
 
         :param parent_span: Optional parent span
-        :type parent_span: gaesd.Span
+        :type parent_span: Span
         :param span_args: Passed directly to the Span constructor.
         :return: The new span
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         parent_span_id = parent_span.span_id if parent_span is not None else \
             self.root_span_id
@@ -263,7 +263,7 @@ class Trace(MutableSequence):
         """
         Notify this Trace that it has completed.
 
-        :param gaesd.Span span: The final span.
+        :param Span span: The final span.
         """
         self._remove_span_from_span_tree(span)
         self.sdk.patch_trace(self)
@@ -273,7 +273,7 @@ class Trace(MutableSequence):
         Add a span to the current Trace and make it the current_span.
 
         :param other: The span to add.
-        :type other: gaesd.Span
+        :type other: Span
         """
         if not isinstance(other, Span):
             raise TypeError('{0} is not an instance of Span'.format(other))
@@ -299,7 +299,7 @@ class Trace(MutableSequence):
             current_span.
 
         :param other: The span to remove.
-        :type other: gaesd.Span
+        :type other: Span
         """
         if not isinstance(other, Span):
             raise TypeError('{other} is not an instance of Span'.format(
@@ -363,7 +363,7 @@ class Trace(MutableSequence):
         Retrieve a TraceDecorators instance associated to this instance.
 
         :return: A new Decorators instance.
-        :rtype: gaesd.TraceDecorators
+        :rtype: TraceDecorators
         """
         return TraceDecorators(self)
 

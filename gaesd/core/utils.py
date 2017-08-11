@@ -108,17 +108,16 @@ def _find_spans_in_datetime_range(spans, from_, to_, func):
 def find_spans_in_datetime_range(spans, from_=None, to_=None):
     """
     Find all the spans such that:
-        span.start_time <= from
-        to_ < span.end_time
+    (span.start_time <= from) and (to_ < span.end_time)
 
     :param spans: The spans to parse.
-    :type spans: List[gaesd.Span]
+    :type spans: List(Span)
     :param from_: The optional lower bound.
     :type from_: datetime.datetime
     :param to_: The optional upper bound .
     :type to_: datetime.datetime
     :return: The spans that satisfy the bounds.
-    :rtype: List[gaesd.Span]
+    :rtype: List(Span)
     """
     return _find_spans_in_datetime_range(
         spans=spans,
@@ -131,17 +130,16 @@ def find_spans_in_datetime_range(spans, from_=None, to_=None):
 def find_spans_in_float_range(spans, from_=None, to_=None):
     """
     Find all the spans such that:
-        span.start_time <= from
-        to_ < span.end_time
+    (span.start_time <= from) and (to_ < span.end_time)
 
     :param spans: The spans to parse.
-    :type spans: List[gaesd.Span]
+    :type spans: List(Span)
     :param from_: The optional lower bound.
     :type from_: float
     :param to_: The optional upper bound .
     :type to_: float
     :return: The spans that satisfy the bounds.
-    :rtype: List[gaesd.Span]
+    :rtype: List(Span)
     """
     return _find_spans_in_datetime_range(
         spans=spans,
@@ -156,11 +154,11 @@ def find_spans_with_duration_less_than(spans, duration):
     Find all spans with durations less than the given one.
     Spans with no duration will not be returned.
 
-    :param list(gaesd.Span) spans:
+    :param list(Span) spans:
     :param duration: The duration to use.
     :type duration: Union[float, int]
     :return: The spans that satisfy the duration.
-    :rtype: List[gaesd.Span
+    :rtype: List(Span)
     """
     if isinstance(duration, (FloatType, IntType)):
         duration = datetime.timedelta(seconds=duration)

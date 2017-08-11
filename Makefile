@@ -6,7 +6,12 @@ TESTS ?= tests
 FLAKE8_FORMAT ?= '$${cyan}%(path)s$${reset}:$${yellow_bold}%(row)d$${reset}:$${green_bold}%(col)d$${reset}: $${red_bold}%(code)s$${reset} %(text)s'
 PYLINT_FORMAT ?= colorized
 
-SPHINX_DIR ?= 'sphinx_doc'
+SPHINX_DIR ?= 'docs'
+# SPHINXOPTS    =
+# SPHINXBUILD   = python -msphinx
+SPHINXPROJ    = gaesd
+SOURCEDIR     = .
+# BUILDDIR      = _build
 
 ifdef VIRTUAL_ENV
 $(error This Makefile cannot be run from inside a virtualenv)
@@ -142,7 +147,7 @@ sphinx-html:
 .PHONY: sphinx-clean
 sphinx-clean:
 	$(MAKE) -C $(SPHINX_DIR) clean
-	find sphinx_doc/source/ -name '*.rst' ! -name 'index.rst' -type f -exec rm -f {} +
+	find doc/source/ -name '*.rst' ! -name 'index.rst' -type f -exec rm -f {} +
 
 .PHONY: sphinx-doc
 sphinx-doc: sphinx-html
@@ -154,3 +159,14 @@ sphinx-doc: sphinx-html
 clean: sphinx-clean
 	# Cleaning
 	rm -R .virtualenv
+
+
+
+
+
+
+
+
+
+
+

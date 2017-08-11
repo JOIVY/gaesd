@@ -33,7 +33,7 @@ class SDK(Callable, MutableSequence):
         :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
         :type project_id: six.string_types
         :param dispatcher: Dispatcher type to use
-        :type dispatcher: type(gaesd.Dispatcher)
+        :type dispatcher: type(Dispatcher)
         :param auto: True=dispatch traces immediately upon span completion,
         False=Otherwise. Default=True.
         :type auto: bool
@@ -79,7 +79,7 @@ class SDK(Callable, MutableSequence):
     def set_logging_level(cls, level, prefix=None):
         """
         Set the logging level of a logger associated with this SDK, one
-            of it's Traces or one of it's Spans, Helpers or Decorators.
+        of it's Traces or one of it's Spans, Helpers or Decorators.
 
         :param int level: New logging level to set.
         :param prefix: All loggers with this prefix will have their levels set.
@@ -98,7 +98,7 @@ class SDK(Callable, MutableSequence):
         :param args: Passed directly through to the SDk.__init__ method.
         :param kwargs: Passed directly through to the SDk.__init__ method.
         :return: A new instance of an SDK class.
-        :rtype: gaesd.SDK
+        :rtype: SDK
         """
         return cls(*args, **kwargs)
 
@@ -111,7 +111,7 @@ class SDK(Callable, MutableSequence):
         """
         Retrieve the decorators builder.
 
-        :rtype: gaesd.Decorators
+        :rtype: Decorators
         """
         return self._decorators
 
@@ -120,7 +120,7 @@ class SDK(Callable, MutableSequence):
         """
         Retrieve the helpers builder.
 
-        :rtype: gaesd.Helpers
+        :rtype: Helpers
         """
         return self._helpers
 
@@ -129,7 +129,7 @@ class SDK(Callable, MutableSequence):
         """
         Determine if the SDK is enabled.
         An enabled SDK is one that will not dispatch traces to StackDriver
-           but will still create and capture traces and spans.
+        but will still create and capture traces and spans.
 
         :return: True=Enabled, False=disabled.
         :rtype: bool
@@ -170,7 +170,7 @@ class SDK(Callable, MutableSequence):
         """
         Get the current SDK dispatcher in use.
 
-        :rtype: gaesd.Dispatcher
+        :rtype: Dispatcher
         """
         return self._context.dispatcher
 
@@ -204,9 +204,9 @@ class SDK(Callable, MutableSequence):
         Retrieve the current Trace instance.
 
         :note: This method has side-effects - it will create a new Trace if
-            one does not exist.
+        one does not exist.
         :return: The new trace instance.
-        :rtype: gaesd.Trace
+        :rtype: Trace
         """
         try:
             return self._context.traces[-1]
@@ -229,7 +229,7 @@ class SDK(Callable, MutableSequence):
         Retrieve a list of the current traces.
 
         :return: A shallow-copy list of this SDK's traces.
-        :rtype: list(gaesd.Trace)
+        :rtype: list(Trace)
         """
         return self._context.traces[:]
 
@@ -257,7 +257,7 @@ class SDK(Callable, MutableSequence):
         Create a new Trace with default parameters.
 
         :return: The new trace instance
-        :rtype: gaesd.Trace
+        :rtype: Trace
         """
         return self.trace()
 
@@ -270,7 +270,7 @@ class SDK(Callable, MutableSequence):
         new Span if they do not exist.
 
         :return: Span context-manager instance
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         trace = self.current_trace
         return trace.current_span
@@ -294,7 +294,7 @@ class SDK(Callable, MutableSequence):
         Create a new Span with default parameters.
 
         :return: Span context-manager
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         return self.span()
 
@@ -303,10 +303,10 @@ class SDK(Callable, MutableSequence):
         Create a new span under the current trace and span
             (with auto-generated `trace_id`).
 
-        :param gaesd.Span parent_span: Parent span to be this span's parent.
+        :param Span parent_span: Parent span to be this span's parent.
         :param span_args: Passed directly to the Trace.span method.
         :return: Span context-manager
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         trace = self.current_trace
         parent_span = parent_span if parent_span is not None else \
