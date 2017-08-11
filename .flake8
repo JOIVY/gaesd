@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 80
+max-complexity = 10
+ignore = F401
+no-visual = True
+
+exclude =
+    gaesd/_-version__.py

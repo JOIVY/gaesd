@@ -84,7 +84,8 @@ class Span(object):
 
         :param int level: New logging level to set.
         """
-        return self.sdk.set_logging_level(level, prefix=self.__class__.__name__)
+        return self.sdk.set_logging_level(
+            level, prefix=self.__class__.__name__)
 
     @classmethod
     def new(cls, *args, **kwargs):
@@ -102,8 +103,11 @@ class Span(object):
 
     def __repr__(self):
         return 'Span({0}<-{1})[({2} - {3}) - {4}]'.format(
-            self.span_id, self.parent_span_id, self._start_time, self._end_time,
-            self._span_kind.value
+            self.span_id,
+            self.parent_span_id,
+            self._start_time,
+            self._end_time,
+            self._span_kind.value,
         )
 
     @property
@@ -287,7 +291,7 @@ class Span(object):
             self.parent_span_id) if self.parent_span_id else None
         labels = dict(
             (str(label), str(label_value))
-                for label, label_value in self.labels.items()
+            for label, label_value in self.labels.items()
         )
 
         return {

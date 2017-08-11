@@ -47,7 +47,10 @@ class Dispatcher(object):
 
         :param int level: New logging level to set.
         """
-        return self.sdk.set_logging_level(level, prefix=self.__class__.__name__)
+        return self.sdk.set_logging_level(
+            level,
+            prefix=self.__class__.__name__,
+        )
 
     @property
     def traces(self):

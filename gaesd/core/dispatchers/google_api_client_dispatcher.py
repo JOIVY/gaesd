@@ -15,7 +15,6 @@ else:
 
     __all__ = ['GoogleApiClientDispatcher']
 
-
     class GoogleApiClientDispatcher(Dispatcher):
         """
         Dispatcher that uses the googleapiclient.

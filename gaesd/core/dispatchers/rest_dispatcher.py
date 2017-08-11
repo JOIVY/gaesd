@@ -18,7 +18,8 @@ class RestDispatcher(Dispatcher):  # pragma: no cover
     def _prep_dispatch(self, traces):
         # Dispatch!
         return PrepData(
-            ''.join([self._ROOT_URL,
+            ''.join([
+                self._ROOT_URL,
                 self._PATCH_TRACES_URL.format(self.sdk.project_id)]),
             {'traces': [trace.export() for trace in traces]}
         )
