@@ -8,10 +8,12 @@ import six
 from gaesd import Span
 from gaesd.sdk import SDK
 
+PROJECT_ID = 'my-project-id.appspot.com'
+
 
 class DecoratorsCaseBase(object):
     def setUp(self):
-        self.project_id = 'my-project'
+        self.project_id = PROJECT_ID
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
 
 
@@ -321,5 +323,5 @@ class TestDecoratorsSpanSpanTestCase(DecoratorsCaseBase, unittest.TestCase):
         )
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()

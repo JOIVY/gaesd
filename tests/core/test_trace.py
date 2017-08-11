@@ -5,6 +5,7 @@ import datetime
 import itertools
 import json
 import operator
+import random
 import unittest
 
 from mock import patch
@@ -12,11 +13,14 @@ from mock import patch
 from gaesd import InvalidSliceError, SDK, Span, Trace
 from gaesd.core.utils import datetime_to_float
 
+PROJECT_ID = 'my-project-id.appspot.com'
+
 
 class TestTraceTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'my-project'
+        self.project_id = PROJECT_ID
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
+        self.sdk.clear(traces=True, enabler=True, dispatcher=True, loggers=True)
 
     def test_init(self):
         trace_id = Trace.new_trace_id()
@@ -68,7 +72,7 @@ class TestTraceTestCase(unittest.TestCase):
             self.assertIsInstance(data, {}.__class__)
             self.assertSetEqual(
                 set(data.keys()),
-                set(['projectId', 'traceId', 'spans'])
+                {'projectId', 'traceId', 'spans'},
             )
             self.assertEqual(data['projectId'], self.sdk.project_id)
             self.assertEqual(data['traceId'], trace_id)
@@ -266,8 +270,8 @@ class TestTraceTestCase(unittest.TestCase):
             self.assertEqual(len(traces), i)
             self.assertEqual(traces, all_spans[:i])
 
-        traces = trace[None: end_times[i] + datetime.timedelta(seconds=11)]
-        self.assertEqual(len(traces), 10)
+            traces = trace[None: end_times[i] + datetime.timedelta(seconds=11)]
+            self.assertEqual(len(traces), 10)
 
     def test_getitem_datetime_only_lower_bound(self):
         trace = self.sdk.current_trace
@@ -365,6 +369,79 @@ class TestTraceTestCase(unittest.TestCase):
         self.assertNotIn(span, trace.spans)
         self.assertIsInstance(result, Trace)
 
+    def test_set_logging_level(self):
+        self.assertEqual(len([i for i in self.sdk.loggers.keys() if i.startswith('Trace.')]), 0)
 
-if __name__ == '__main__':
+        trace = self.sdk.current_trace
+        new_level = 66
+        for logger in self.sdk.loggers.values():
+            self.assertFalse(logger.level == new_level)
+
+        self.assertEqual(len([i for i in self.sdk.loggers.keys() if i.startswith('Trace.')]), 1)
+        trace.set_logging_level(new_level)
+
+        for logger_name, logger in self.sdk.loggers.items():
+            if logger_name.startswith('Trace.'):
+                self.assertEqual(logger.level, new_level)
+
+    def test_set_item_raises_TypeError(self):
+        for i in [Trace(self.sdk), self.sdk, 123, 'abc']:
+            self.assertRaises(TypeError, operator.setitem, i, 0, i)
+
+    def test_del_and_set_item(self):
+        l = 10
+        _ = [self.sdk.span() for _ in range(l)]
+        current_trace = self.sdk.current_trace
+
+        self.assertEqual(len(self.sdk), 1)
+        self.assertEqual(len(current_trace), l)
+
+        span = Span(trace=current_trace, span_id=1234)
+        self.assertEqual(len(self.sdk), 1)
+        self.assertEqual(len(current_trace), l)
+
+        i = random.randint(0, l - 1)
+        current_trace[i] = span
+        self.assertIs(current_trace[i], span)
+
+        spans = current_trace._spans
+        del spans[i]
+        self.assertEqual(len(current_trace.spans), l - 1)
+
+        for s in current_trace.spans:
+            self.assertIsNot(s, span)
+
+    def test_insert_raises_TypeError(self):
+        current_trace = self.sdk.current_trace
+
+        for i in [Trace(self.sdk), self.sdk, 123, 'abc']:
+            self.assertRaises(TypeError, current_trace.insert, 0, i)
+
+    def test_insert(self):
+        l = 10
+        current_trace = self.sdk.current_trace
+        _ = [current_trace.span() for _ in range(l)]
+        self.assertEqual(len(self.sdk), 1)
+        self.assertEqual(len(current_trace), l)
+
+        span = Span(trace=current_trace, span_id=1234)
+        self.assertEqual(len(self.sdk), 1)
+        self.assertEqual(len(current_trace.spans), l)
+
+        current_trace.insert(0, span)
+        self.assertIs(current_trace.spans[0], span)
+        self.assertEqual(len(self.sdk), 1)
+        self.assertEqual(len(current_trace.spans), l + 1)
+
+        spans = current_trace._spans
+        i = random.randint(0, l - 1)
+        span = spans[i]
+        del current_trace[i]
+        self.assertEqual(len(current_trace.spans), l)
+
+        for s in current_trace.spans:
+            self.assertIsNot(s, span)
+
+
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()

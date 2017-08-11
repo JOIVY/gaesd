@@ -3,10 +3,13 @@
 
 import operator
 import threading
+from collections import Callable, MutableSequence
 from logging import getLogger
 
 from .core.decorators import Decorators
-from .core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
+from .core.dispatchers.google_api_client_dispatcher import (
+    GoogleApiClientDispatcher
+)
 from .core.helpers import Helpers
 from .core.span import Span
 from .core.trace import Trace
@@ -16,65 +19,90 @@ DEFAULT_ENABLER = True
 __all__ = ['SDK']
 
 
-class SDK(object):
+class SDK(Callable, MutableSequence):
     """
     Thread-aware main class controlling writing data to StackDriver.
     """
-    # thread-local storage:
-    _context = threading.local()
+    _context = threading.local()  # thread-local storage:
 
     def __init__(
-        self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True, enabler=DEFAULT_ENABLER
+        self, project_id, dispatcher=GoogleApiClientDispatcher, auto=True,
+        enabler=DEFAULT_ENABLER,
     ):
         """
         :param project_id: appengine PROJECT id (eg: `joivy-dev5`)
-        :type project_id: str
+        :type project_id: six.string_types
         :param dispatcher: Dispatcher type to use
-        :type dispatcher: type(gaesd.core.dispatchers.dispatcher.Dispatcher)
-        :param auto: True=dispatch traces immediately upon span completion, False=Otherwise.
-        Default=True.
+        :type dispatcher: type(Dispatcher)
+        :param auto: True=dispatch traces immediately upon span completion,
+        False=Otherwise. Default=True.
         :type auto: bool
-        :param enabler: Global kill switch. True=enabled, Otherwise=killed. Default=True.
+        :param enabler: Global kill switch. True=enabled, False=killed.
+            Default=True.
         :type enabler: bool/callable
         """
         self._project_id = project_id
         self.clear()
         self._context.dispatcher = dispatcher(sdk=self, auto=auto)
         self._context.enabler = enabler
-        self._context.loggers = {}
+        if not hasattr(self._context, 'loggers'):
+            self._context.loggers = {}
         self._helpers = Helpers(self)
         self._decorators = Decorators(self)
 
     @property
     def loggers(self):
+        """
+        Retrieve all logger instances associated with this SDK.
+
+        :rtype: list
+        """
         return self._context.loggers
 
     @property
     def logger(self):
+        """
+        Retrieve this SDK's logger instance.
+        """
         my_id = id(self)
         name = self.__class__.__name__
         logger_name = '{name}.{my_id}'.format(my_id=my_id, name=name)
 
         logger = self.loggers.get(logger_name)
         if logger is None:
-            self.loggers[logger_name] = getLogger('{name}'.format(name=logger_name))
+            logger = getLogger('{name}'.format(name=logger_name))
+            self.loggers[logger_name] = logger
 
-        return self.loggers[logger_name]
+        return logger
 
-    def set_logging_level(self, level, prefix=None):
-        for logger_name, logger in self.loggers.items():
-            if prefix:
-                if logger_name.split('.')[0] != prefix:
-                    continue
+    @classmethod
+    def set_logging_level(cls, level, prefix=None):
+        """
+        Set the logging level of a logger associated with this SDK, one
+        of it's Traces or one of it's Spans, Helpers or Decorators.
+
+        :param int level: New logging level to set.
+        :param prefix: All loggers with this prefix will have their levels set.
+        :type prefix: Union[None, None, str]
+        """
+        for logger_name, logger in cls._context.loggers.items():
+            if prefix and logger_name.split('.')[0] != prefix:
+                continue
             logger.setLevel(level)
 
     @classmethod
     def new(cls, *args, **kwargs):
-        sdk = cls(*args, **kwargs)
-        sdk.logger.debug('Created {sdk}'.format(sdk=sdk))
-        return sdk
+        """
+        Create a new instance of this SDK.
 
-    def __str__(self):
+        :param args: Passed directly through to the SDk.__init__ method.
+        :param kwargs: Passed directly through to the SDk.__init__ method.
+        :return: A new instance of an SDK class.
+        :rtype: SDK
+        """
+        return cls(*args, **kwargs)
+
+    def __repr__(self):
         return 'Trace-SDK({0})[{1}]'.format(
             self.project_id, [str(i) for i in self._trace_ids])
 
@@ -83,7 +111,7 @@ class SDK(object):
         """
         Retrieve the decorators builder.
 
-        :rtype: gaesd.decorators.Decorators
+        :rtype: Decorators
         """
         return self._decorators
 
@@ -92,7 +120,7 @@ class SDK(object):
         """
         Retrieve the helpers builder.
 
-        :rtype: gaesd.helpers.Helpers
+        :rtype: Helpers
         """
         return self._helpers
 
@@ -100,32 +128,33 @@ class SDK(object):
     def is_enabled(self):
         """
         Determine if the SDK is enabled.
+        An enabled SDK is one that will not dispatch traces to StackDriver
+        but will still create and capture traces and spans.
 
-        :return: True=Enabled, False=disabled (but still accumulating).
+        :return: True=Enabled, False=disabled.
         :rtype: bool
         """
-        enabler = SDK._context.enabler
+        value = self._context.enabler
 
         try:
-            return bool(enabler())
-        except:
-            return bool(enabler)
+            return bool(value())
+        except Exception:
+            return bool(value)
 
     @property
     def enabler(self):
         """
-        Set the SDK enabler
+        Get the SDK enabler's result.
 
-        :param enabler: Something or a callable that evaluated to bool
-        :type enabler: Union[function, bool]
-        :raises: ValueError
+        :return: The evaluated SDk's enabled.
+        :rtype: bool
         """
         return self.is_enabled
 
     @enabler.setter
     def enabler(self, enabler):
         """
-        Set the SDK enabler
+        Set the SDK enabler.
 
         :param enabler: Something or a callable that evaluated to bool
         :type enabler: Union[function, bool]
@@ -134,36 +163,36 @@ class SDK(object):
         if enabler is None:
             raise ValueError('enabler cannot be None')
 
-        SDK._context.enabler = enabler
+        self._context.enabler = enabler
 
     @property
     def dispatcher(self):
         """
-        Get the current SDK dispatcher.
+        Get the current SDK dispatcher in use.
 
-        :rtype: gaesd.core.dispatchers.dispatcher.dispatcher.Dispatcher
+        :rtype: Dispatcher
         """
         return self._context.dispatcher
 
-    @staticmethod
-    def clear(traces=True, enabler=True, dispatcher=True, loggers=False):
+    @classmethod
+    def clear(cls, traces=True, enabler=True, dispatcher=True, loggers=False):
         """
-        Clear the current thread's context of the named attributes (resetting them to default
-        values).
+        Clear the current thread's context of the named attributes.
+        This will reset them to their default values.
         """
         if traces:
-            SDK._context.traces = []
+            cls._context.traces = []
         if enabler:
-            SDK._context.enabler = False
+            cls._context.enabler = False
         if dispatcher:
-            SDK._context.dispatcher = None
+            cls._context.dispatcher = None
         if loggers:
-            SDK._context.loggers = {}
+            cls._context.loggers = {}
 
     @property
     def project_id(self):
         """
-        Retrieve the current PROJECT_ID
+        Retrieve the current SDK's project_id
 
         :rtype: six.string_types
         """
@@ -172,11 +201,12 @@ class SDK(object):
     @property
     def current_trace(self):
         """
-        Return the current trace context-manager.
+        Retrieve the current Trace instance.
 
-        :note: This method has side-effects - it will create a new Trace if one does not exist.
-        :return: Trace context-manager
-        :rtype: gaesd.Trace
+        :note: This method has side-effects - it will create a new Trace if
+        one does not exist.
+        :return: The new trace instance.
+        :rtype: Trace
         """
         try:
             return self._context.traces[-1]
@@ -185,11 +215,27 @@ class SDK(object):
 
     @property
     def _trace_ids(self):
+        """
+        Retrieve a list of all trace ids in use.
+
+        :return: The trace ids.
+        :rtype: list(int)
+        """
         return [trace.trace_id for trace in self._context.traces]
+
+    @property
+    def traces(self):
+        """
+        Retrieve a list of the current traces.
+
+        :return: A shallow-copy list of this SDK's traces.
+        :rtype: list(Trace)
+        """
+        return self._context.traces[:]
 
     def trace(self, **trace_args):
         """
-        Return a new trace context-manager.
+        Create a new Trace instance.
 
         :param trace_args: kwargs passed directly to the Trace constructor.
         :return: Trace context-manager
@@ -199,21 +245,32 @@ class SDK(object):
         trace_id = trace.trace_id
 
         if trace_id in self._trace_ids:
-            raise ValueError('invalid trace_id {trace_id}'.format(trace_id=trace_id))
+            raise ValueError(
+                'duplicate trace_id {trace_id}'.format(trace_id=trace_id))
 
         self._context.traces.append(trace)
         return trace
+
+    @property
+    def new_trace(self):
+        """
+        Create a new Trace with default parameters.
+
+        :return: The new trace instance
+        :rtype: Trace
+        """
+        return self.trace()
 
     @property
     def current_span(self):
         """
         Retrieve the current span from the current trace.
 
-        :note: This method has side-effects - it will create a new Trace and new Span if they do
-        not exist.
+        :note: This method has side-effects - it will create a new Trace and
+        new Span if they do not exist.
 
-        :return: Span context-manager
-        :rtype: gaesd.Span
+        :return: Span context-manager instance
+        :rtype: Span
         """
         trace = self.current_trace
         return trace.current_span
@@ -237,23 +294,25 @@ class SDK(object):
         Create a new Span with default parameters.
 
         :return: Span context-manager
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         return self.span()
 
-    def span(self, parent_span=None, **kwargs):
+    def span(self, parent_span=None, **span_args):
         """
-        Create a new span under the current trace and span (with auto-generated `trace_id`).
+        Create a new span under the current trace and span
+            (with auto-generated `trace_id`).
 
+        :param Span parent_span: Parent span to be this span's parent.
+        :param span_args: Passed directly to the Trace.span method.
         :return: Span context-manager
-        :rtype: gaesd.Span
+        :rtype: Span
         """
         trace = self.current_trace
-        parent_span = parent_span if parent_span is not None else trace.spans[-1] if \
-            trace.spans else None
+        parent_span = parent_span if parent_span is not None else \
+            trace.spans[-1] if trace.spans else None
 
-        span = trace.span(parent_span=parent_span, **kwargs)
-        return span
+        return trace.span(parent_span=parent_span, **span_args)
 
     def patch_trace(self, trace):
         return self.dispatcher.patch_trace(trace)
@@ -273,27 +332,53 @@ class SDK(object):
         if isinstance(other, Trace):
             trace_id = other.trace_id
             if trace_id in self._trace_ids:
-                raise ValueError('invalid trace_id {trace_id}'.format(trace_id=trace_id))
+                raise ValueError(
+                    'invalid trace_id {trace_id}'.format(trace_id=trace_id))
             self._context.traces.append(other)
         elif isinstance(other, Span):
             operator.add(self.current_trace, other)
         else:
-            raise TypeError('{0} is not a Trace or Span'.format(other))
+            raise TypeError(
+                'Expecting type Trace or Span but got {t}'.format(t=other))
 
-    def __iadd__(self, other):
-        # TODO: Test this!
+    def __iadd__(self, other):  # pragma: no cover
         operator.add(self, other)
         return self
 
-    # def __lshift__(self, other):# pragma: no cover
-    #     """
-    #     TODO:
-    #     """
-    #     pass
+    def __lshift__(self, other):  # pragma: no cover
+        """
+        TODO:
+        """
+        pass
 
     def __iter__(self):
         for trace in self._context.traces:
             yield trace
 
     def __getitem__(self, item):
-        return SDK._context.traces[item]
+        return self._context.traces[item]
+
+    def __contains__(self, item):
+        if isinstance(item, Trace):
+            return item in self._context.traces
+        elif isinstance(item, Span):
+            return any([
+                item in span for span in
+                [trace.spans for trace in self._context.traces]
+            ])
+        return False
+
+    def __setitem__(self, index, value):
+        if not isinstance(value, Trace):
+            raise TypeError('Can only set item of type=Trace')
+        self._context.traces[index] = value
+
+    def __delitem__(self, index):
+        del self._context.traces[index]
+
+    def insert(self, index, value):
+        'S.insert(index, object) -- insert object before index'
+        if not isinstance(value, Trace):
+            raise TypeError('Can only insert item of type=Trace')
+
+        self._context.traces.insert(index, value)

@@ -11,10 +11,12 @@ from gaesd.core.dispatchers.rest_dispatcher import SimpleRestDispatcher
 from gaesd.core.trace import Trace
 from gaesd.sdk import SDK
 
+PROJECT_ID = 'my-project-id.appspot.com'
+
 
 class TestDispatcherTestCase(unittest.TestCase):
     def setUp(self):
-        self.project_id = 'my-project'
+        self.project_id = PROJECT_ID
         self.sdk = SDK.new(project_id=self.project_id, auto=False)
         self.assertIsInstance(self.sdk.dispatcher, GoogleApiClientDispatcher)
 
@@ -72,6 +74,30 @@ class TestDispatcherTestCase(unittest.TestCase):
         mock_method.assert_called_once_with([123])
         self.assertEqual(dispatcher._traces, [])
 
+    def test_call_when_disabled(self):
+        sdk = SDK.new(project_id=self.project_id, enabler=False)
+        dispatcher = SimpleRestDispatcher(sdk=sdk, auto=True)
+        mock_method = Mock()
+        dispatcher._dispatch = mock_method
+        dispatcher._traces = [123]
 
-if __name__ == '__main__':
+        dispatcher()
+        mock_method.assert_not_called()
+        self.assertEqual(dispatcher._traces, [])
+
+    def test_set_logging_level(self):
+        sdk = SDK.new(project_id=self.project_id, enabler=True)
+        dispatcher = SimpleRestDispatcher(sdk=sdk, auto=True)
+
+        new_level = 66
+        logger = dispatcher.logger
+        self.assertNotEqual(logger.level, new_level)
+        self.assertTrue(logger.name.startswith('SimpleRestDispatcher'))
+
+        dispatcher.set_logging_level(new_level)
+        self.assertEqual(logger.name.split('.')[0], 'SimpleRestDispatcher')
+        self.assertEqual(logger.level, new_level)
+
+
+if __name__ == '__main__':  # pragma: no-cover
     unittest.main()
