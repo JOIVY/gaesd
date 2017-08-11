@@ -3,9 +3,15 @@
 # pragma: no-cover
 
 __title__ = 'gaesd'
-__description__ = 'Pythonic StackDriver traces authoring from AppEngine.'
+__description__ = 'Capture and dispatch Stack-Driver compatible traces using ' \
+                  'a pure python implementation with a pythonic api:' \
+                  'context managers, thread-locals (for web requests) and ' \
+                  'method decorators. The full patchTraces API is supported.' \
+                  'Uses the `google_api_python_client` and `oauth2client` ' \
+                  'libraries under the hood and easily usable on AppEngine' \
+                  'if these libraries are vendored-in.'
 __url__ = 'https://github.com/JOIVY/gaesd'
-__version__ = '0.5'
+__version__ = '0.6'
 __author__ = 'Francis Horsman'
 __author_email__ = 'francis.horsman@joivy.com'
 __license__ = 'Restricted'

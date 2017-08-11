@@ -12,14 +12,26 @@
 
 import os
 import sys
-from distutils.core import setup
+
+from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
+about = {}
+with open(os.path.join(here, 'gaesd', '__version__.py')) as f:
+    exec (f.read(), about)
+
 # 'setup.py publish' shortcut.
 if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist bdist_wheel')
-    os.system('twine upload dist/*')
+    # os.system('python setup.py sdist bdist_wheel')
+    # os.system('twine upload dist/*')
+    print("You probably want to also tag the version now:")
+    print("  git tag -a %s -m 'version %s'" % (
+    about['__version__'], about['__version__']))
+    print("  git push --tags")
+    sys.exit()
+elif sys.argv[-1] == 'test':
+    os.system('make test')
     sys.exit()
 
 requires = [
@@ -29,10 +41,6 @@ requires = [
     'google_api_python_client',
     'oauth2client',
 ]
-
-about = {}
-with open(os.path.join(here, 'gaesd', '__version__.py')) as f:
-    exec (f.read(), about)
 
 setup(
     name=about['__title__'],

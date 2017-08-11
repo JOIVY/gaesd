@@ -8,6 +8,12 @@ nose-progressive==1.5.1
 nose-cov==1.6
 nose-leak-detector==0.1.5
 nose-parameterized==0.5.0
-pylint==1.7.2
+nose-colorxunit==0.2.0
+nose-exclude==0.5.0
+pylint
+pytest
 six==1.10.0
 tox==2.7.0
+vulture
+radon
+pycallgraph
