@@ -5,14 +5,15 @@ import datetime
 import itertools
 import random
 import unittest
-from types import FloatType
 
-from gaesd import (DuplicateSpanEntryError, InvalidSliceError, NoDurationError, SDK, )
-from gaesd.core.utils import datetime_to_float, datetime_to_timestamp, \
-    find_spans_in_datetime_range, \
-    find_spans_in_float_range, find_spans_with_duration_less_than
+import six
 
-PROJECT_ID = 'my-project-id.appspot.com'
+from gaesd import (DuplicateSpanEntryError, InvalidSliceError, NoDurationError, SDK)
+from gaesd.core.utils import (
+    datetime_to_float, datetime_to_timestamp, find_spans_in_datetime_range,
+    find_spans_in_float_range, find_spans_with_duration_less_than,
+)
+from tests import PROJECT_ID
 
 
 class TestUtilsTestCase(unittest.TestCase):
@@ -30,7 +31,7 @@ class TestUtilsTestCase(unittest.TestCase):
             raise NoDurationError(span)
         except NoDurationError as e:
             self.assertIs(e.span, span)
-            self.assertEqual(e.message, 'Span has no duration ({start_time} -> {end_time})'.format(
+            self.assertEqual(str(e), 'Span has no duration ({start_time} -> {end_time})'.format(
                 start_time=span.start_time, end_time=span.end_time))
 
     def test_InvalidSliceError(self):
@@ -39,7 +40,7 @@ class TestUtilsTestCase(unittest.TestCase):
             raise InvalidSliceError(s)
         except InvalidSliceError as e:
             self.assertIs(e.slice, s)
-            self.assertEqual(e.message, 'Invalid slice {s}'.format(s=s))
+            self.assertEqual(str(e), 'Invalid slice {s}'.format(s=s))
 
     def test_DuplicateSpanEntryError(self):
         span = self.sdk.current_span
@@ -47,7 +48,7 @@ class TestUtilsTestCase(unittest.TestCase):
             raise DuplicateSpanEntryError(span)
         except DuplicateSpanEntryError as e:
             self.assertIs(e.span, span)
-            self.assertEqual(e.message, 'Already entered this span\'s context: {span}'.format(
+            self.assertEqual(str(e), 'Already entered this span\'s context: {span}'.format(
                 span=span))
 
     def test_datetime_to_timestamp(self):
@@ -64,7 +65,7 @@ class TestUtilsTestCase(unittest.TestCase):
 
         result = datetime_to_float(epoch_plus_one_day)
         self.assertEqual(result, SECONDS_IN_A_DAY)
-        self.assertIsInstance(result, FloatType)
+        self.assertIsInstance(result, float)
 
     def test_find_spans_with_duration_less_than_duration_is_int(self):
         l = 10
@@ -73,7 +74,10 @@ class TestUtilsTestCase(unittest.TestCase):
         type_changer = itertools.cycle([int, float])
 
         def change_type(i):
-            return type_changer.next()(i)
+            if six.PY2:
+                return type_changer.next()(i)
+            else:
+                return type_changer.__next__()(i)
 
         spans = []
         for index in range(l):

@@ -6,6 +6,8 @@ import unittest
 
 from mock import MagicMock, patch
 
+from tests import PROJECT_ID
+
 try:
     from googleapiclient import discovery
     from oauth2client.client import GoogleCredentials
@@ -20,8 +22,6 @@ except ImportError as e:  # pragma: no cover
 
 from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientDispatcher
 from gaesd.sdk import SDK
-
-PROJECT_ID = 'my-project-id.appspot.com'
 
 
 class MockTrace(object):

@@ -7,7 +7,6 @@ import operator
 import uuid
 from collections import MutableSequence
 from logging import getLogger
-from types import NoneType
 
 from gaesd.core.decorators import TraceDecorators
 from .span import Span
@@ -335,17 +334,17 @@ class Trace(MutableSequence):
             stop = item.stop
 
             if all([
-                isinstance(i, (datetime.datetime, NoneType))
+                isinstance(i, (datetime.datetime, type(None)))
                 for i in [start, stop]]
             ):
                 # Find all spans where (span.start>=start) and (stop<span.stop)
-                spans = find_spans_in_datetime_range(self.spans, start, stop)
+                spans = find_spans_in_datetime_range(self.spans, from_=start, to_=stop)
                 return spans[::step]
             if all([isinstance(i, float) for i in [start, stop]]):
-                spans = find_spans_in_float_range(self.spans, start, stop)
+                spans = find_spans_in_float_range(self.spans, from_=start, to_=stop)
                 return spans[::step]
             if not all([
-                isinstance(i, (int, NoneType))
+                isinstance(i, (int, type(None)))
                 for i in [start, stop, step]]
             ):
                 raise InvalidSliceError(

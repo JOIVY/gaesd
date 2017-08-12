@@ -7,6 +7,7 @@ import json
 import operator
 from logging import getLogger
 
+import six
 from enum import Enum, unique
 
 from gaesd.core.decorators import SpanDecorators
@@ -126,7 +127,10 @@ class Span(object):
 
         :rtype: int
         """
-        return cls._span_ids.next()
+        if six.PY2:
+            return cls._span_ids.next()
+        else:
+            return cls._span_ids.__next__()
 
     @property
     def labels(self):
@@ -291,7 +295,7 @@ class Span(object):
             self.parent_span_id) if self.parent_span_id else None
         labels = dict(
             (str(label), str(label_value))
-            for label, label_value in self.labels.items()
+                for label, label_value in self.labels.items()
         )
 
         return {
@@ -354,7 +358,7 @@ class Span(object):
         Add span to trace at the top level
         span >> trace == span.__rshift__(trace)
         """
-        from trace import Trace
+        from gaesd.core.trace import Trace
 
         if isinstance(other, Span):
             self._parent_span_id = other.span_id
@@ -373,7 +377,7 @@ class Span(object):
         Remove span from trace at the top level
         span << trace == span.__lshift__(trace)
         """
-        from trace import Trace
+        from gaesd.core.trace import Trace
 
         if isinstance(other, Span):
             other.parent_span = self

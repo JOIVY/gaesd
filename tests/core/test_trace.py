@@ -12,8 +12,7 @@ from mock import patch
 
 from gaesd import InvalidSliceError, SDK, Span, Trace
 from gaesd.core.utils import datetime_to_float
-
-PROJECT_ID = 'my-project-id.appspot.com'
+from tests import PROJECT_ID
 
 
 class TestTraceTestCase(unittest.TestCase):

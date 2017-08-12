@@ -2,7 +2,6 @@
 # -*- coding: latin-1 -*-
 
 import datetime
-from types import FloatType, IntType
 
 __all__ = [
     'NoDurationError',
@@ -160,7 +159,7 @@ def find_spans_with_duration_less_than(spans, duration):
     :return: The spans that satisfy the duration.
     :rtype: List(Span)
     """
-    if isinstance(duration, (FloatType, IntType)):
+    if isinstance(duration, (float, int)):
         duration = datetime.timedelta(seconds=duration)
 
     results = []
