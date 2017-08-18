@@ -351,8 +351,7 @@ class Trace(MutableSequence):
                     'Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
             # Find all spans that have a duration `<` item
-            spans = find_spans_with_duration_less_than(self.spans, item)
-            return spans
+            return find_spans_with_duration_less_than(self.spans, item)
 
         return self._spans[item]
 
