@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-GAESD - Pyhton 2.7 Stack Driver *patchTraces* for dummies!
+GAESD - Python 2.7 Stack Driver *patchTraces* for dummies!
 ==========================================================
 
 Until an *official* python SDK arrives...
