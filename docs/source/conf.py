@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # gaesd documentation build configuration file, created by
-# sphinx-quickstart on Fri Aug 11 10:54:13 2017.
+# sphinx-quickstart on Thu Aug 24 16:58:36 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -20,8 +20,7 @@ import os
 import sys
 
 # sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath('.'), '../',
-    '../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath('.'), '../', '../')))
 
 # -- General configuration ------------------------------------------------
 
@@ -47,11 +46,14 @@ source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
+span_doc = 'span'
+trace_doc = 'trace'
+utils_doc = 'utils'
 
 # General information about the project.
 project = u'gaesd'
-copyright = u'2017, Francis Horsman'
-author = u'Francis Horsman'
+copyright = u'2017, francis.horsman@gmail.com'
+author = u'francis.horsman@gmail.com'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -100,7 +102,6 @@ html_theme_options = {
     'github_banner': True,
     'show_powered_by': False,
 }
-
 html_show_sourcelink = False
 html_last_updated_fmt = ''
 
@@ -119,14 +120,13 @@ html_sidebars = {
         'sidebarintro.html',
         'sidebarlogo.html',
         'searchbox.html'
-    ],
+    ]
 }
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'gaesddoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -153,7 +153,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'gaesd.tex', u'gaesd Documentation',
-    u'Francis Horsman', 'manual'),
+    u'francis.horsman@gmail.com', 'manual'),
 ]
 
 # -- Options for manual page output ---------------------------------------
@@ -162,7 +162,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'gaesd', u'gaesd Documentation',
-    [author], 1)
+    [author], 1),
 ]
 
 # -- Options for Texinfo output -------------------------------------------
@@ -175,3 +175,5 @@ texinfo_documents = [
     author, 'gaesd', 'StackDriver patchTraces for dummies!',
     'Miscellaneous'),
 ]
+
+autoclass_content = 'both'
