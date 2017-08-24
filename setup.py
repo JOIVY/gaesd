@@ -23,12 +23,12 @@ with open(os.path.join(here, 'gaesd', '__version__.py')) as f:
 
 # 'setup.py publish' shortcut.
 if sys.argv[-1] == 'publish':
-    # os.system('python setup.py sdist bdist_wheel')
-    # os.system('twine upload dist/*')
-    print("You probably want to also tag the version now:")
-    print("  git tag -a %s -m 'version %s'" % (
-    about['__version__'], about['__version__']))
-    print("  git push --tags")
+    version = about['__version__']
+    print("Tagging release as: {0}".format(version))
+    os.system("git tag -a %s -m 'version %s'".format((version, version)))
+    os.system('git push --tags')
+    os.system('python setup.py bdist_wheel')
+    os.system('twine upload dist/*')
     sys.exit()
 elif sys.argv[-1] == 'test':
     os.system('make test')

@@ -20,6 +20,7 @@ var/
 *.egg
 node_modules
 MANIFEST
+build
 
 # TODO folder.
 todo/
@@ -89,5 +90,6 @@ logs/
 #Virtualenv stuff.
 .virtualenv/*
 venv/
+
 
 
