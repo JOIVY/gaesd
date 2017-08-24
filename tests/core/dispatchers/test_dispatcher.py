@@ -10,6 +10,7 @@ from gaesd.core.dispatchers.google_api_client_dispatcher import GoogleApiClientD
 from gaesd.core.dispatchers.rest_dispatcher import SimpleRestDispatcher
 from gaesd.core.trace import Trace
 from gaesd.sdk import SDK
+from tests import PROJECT_ID
 
 PROJECT_ID = 'my-project-id.appspot.com'
 

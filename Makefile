@@ -147,7 +147,7 @@ sphinx-html:
 .PHONY: sphinx-clean
 sphinx-clean:
 	$(MAKE) -C $(SPHINX_DIR) clean
-	find doc/source/ -name '*.rst' ! -name 'index.rst' -type f -exec rm -f {} +
+	find $(SPHINX_DIR)/source/ -name '*.rst' ! -name 'index.rst' -type f -exec rm -f {} +
 
 .PHONY: sphinx-doc
 sphinx-doc: sphinx-html

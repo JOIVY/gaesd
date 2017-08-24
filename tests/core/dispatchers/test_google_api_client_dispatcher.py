@@ -6,6 +6,8 @@ import unittest
 
 from mock import MagicMock, patch
 
+from tests import PROJECT_ID
+
 try:
     from googleapiclient import discovery
     from oauth2client.client import GoogleCredentials

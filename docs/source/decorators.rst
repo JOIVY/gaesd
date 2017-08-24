@@ -5,7 +5,6 @@ Decorators
 
 
 .. autoclass:: gaesd.Decorators
-   :members:
-   :inherited-members:
-
+    :members:
+    :inherited-members:
 

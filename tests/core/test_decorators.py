@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 
+import abc
 import unittest
 
 import six
 
 from gaesd import Span
 from gaesd.sdk import SDK
+from tests import PROJECT_ID
 
 PROJECT_ID = 'my-project-id.appspot.com'
 
 
+@six.add_metaclass(abc.ABCMeta)
 class DecoratorsCaseBase(object):
     def setUp(self):
         self.project_id = PROJECT_ID

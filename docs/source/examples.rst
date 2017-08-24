@@ -1,6 +1,6 @@
 .. _examples:
 
 Examples
-=======
+========
 
 TODO.

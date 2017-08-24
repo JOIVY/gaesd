@@ -5,4 +5,4 @@ ignore = F401
 no-visual = True
 
 exclude =
-    gaesd/_-version__.py
+    gaesd/__version__.py

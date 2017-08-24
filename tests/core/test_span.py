@@ -8,6 +8,7 @@ import unittest
 
 from gaesd import SDK, Span, SpanKind
 from gaesd.core.utils import DuplicateSpanEntryError, NoDurationError, datetime_to_timestamp
+from tests import PROJECT_ID
 
 PROJECT_ID = 'my-project-id.appspot.com'
 

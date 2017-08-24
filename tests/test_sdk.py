@@ -12,8 +12,7 @@ from nose_parameterized import parameterized
 from gaesd import SDK, Span, Trace
 from gaesd.core.dispatchers.google_api_client_dispatcher import \
     GoogleApiClientDispatcher
-
-PROJECT_ID = 'my-project-id.appspot.com'
+from tests import PROJECT_ID
 
 
 def raise_exc():

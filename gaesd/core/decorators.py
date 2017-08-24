@@ -47,7 +47,7 @@ class Decorators(object):
                         span_args.setdefault('parent_span', parent_span)
 
                 if trace is not None:
-                    with trace.span(**span_args):
+                    with trace.span(**span_args) as current_span:
                         return func(*args, **kwargs)
 
                 with self._sdk.span(**span_args):

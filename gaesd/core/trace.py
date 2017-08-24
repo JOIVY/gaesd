@@ -7,7 +7,6 @@ import operator
 import uuid
 from collections import MutableSequence
 from logging import getLogger
-from types import NoneType
 
 from gaesd.core.decorators import TraceDecorators
 from .span import Span
@@ -21,7 +20,7 @@ __all__ = ['Trace']
 
 class Trace(MutableSequence):
     """
-    Representation of a StackDriver Trace object.
+    Representation of a StackDriver Trace object. Can be used as a context-manager.
     """
 
     def __init__(self, sdk, trace_id=None, root_span_id=None):
@@ -287,10 +286,19 @@ class Trace(MutableSequence):
         self._add_new_span_to_span_tree(other)
 
     def __iadd__(self, other):
+        """
+        :see: `__add__`
+        :rtype: Trace
+        """
         operator.add(self, other)
         return self
 
     def __len__(self):
+        """
+        The number of spans in this trace instance.
+
+        :rtype: int
+        """
         return len(self.spans)
 
     def __sub__(self, other):
@@ -309,10 +317,19 @@ class Trace(MutableSequence):
         self._remove_span_from_span_tree(other)
 
     def __isub__(self, other):
+        """
+        :see: `__sub__`
+        :rtype: Trace
+        """
         operator.sub(self, other)
         return self
 
     def __iter__(self):
+        """
+        Iterate over all spans within this trace instance
+
+        :rtype: Trace
+        """
         for span in self.spans:
             yield span
 
@@ -335,25 +352,24 @@ class Trace(MutableSequence):
             stop = item.stop
 
             if all([
-                isinstance(i, (datetime.datetime, NoneType))
+                isinstance(i, (datetime.datetime, type(None)))
                 for i in [start, stop]]
             ):
                 # Find all spans where (span.start>=start) and (stop<span.stop)
-                spans = find_spans_in_datetime_range(self.spans, start, stop)
+                spans = find_spans_in_datetime_range(self.spans, from_=start, to_=stop)
                 return spans[::step]
             if all([isinstance(i, float) for i in [start, stop]]):
-                spans = find_spans_in_float_range(self.spans, start, stop)
+                spans = find_spans_in_float_range(self.spans, from_=start, to_=stop)
                 return spans[::step]
             if not all([
-                isinstance(i, (int, NoneType))
+                isinstance(i, (int, type(None)))
                 for i in [start, stop, step]]
             ):
                 raise InvalidSliceError(
                     'Invalid slice {slice}'.format(slice=slice))
         elif isinstance(item, datetime.timedelta):
             # Find all spans that have a duration `<` item
-            spans = find_spans_with_duration_less_than(self.spans, item)
-            return spans
+            return find_spans_with_duration_less_than(self.spans, item)
 
         return self._spans[item]
 
@@ -368,11 +384,25 @@ class Trace(MutableSequence):
         return TraceDecorators(self)
 
     def __setitem__(self, index, value):
+        """
+        Insert the span into this trace's list of spans.
+
+        :param index: index to insert into
+        :type index: int
+        :param value: Span to insert
+        :type value: Span
+        """
         if not isinstance(value, Span):
             raise TypeError('Can only insert item of type=Span')
         self._spans[index] = value
 
     def __delitem__(self, index):
+        """
+        Delete the span from this trace's list at the given index.
+
+        :param index: index to delete from
+        :type index: int
+        """
         del self._spans[index]
 
     def insert(self, index, value):
