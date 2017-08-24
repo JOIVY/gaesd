@@ -10,6 +10,7 @@
 <br>
 <br>
 
+Complete documentation can be found at <a href="http://gaesd.readthedocs.io/en/latest/">readthedocs</a>
 
 **Quick Start - (webapp2 on Google AppEngine example)**
 
