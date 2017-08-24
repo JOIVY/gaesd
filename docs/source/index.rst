@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-GAESD - Python 2.7 Stack Driver *patchTraces* for dummies!
-==========================================================
+GAESD - Python 2.7/3.* - Stack Driver *patchTraces* for dummies!
+================================================================
 
 Until an *official* python SDK arrives...
 
@@ -30,7 +30,7 @@ The main components of **gaesd** are
 There are also :ref:`decorators`, :ref:`helpers` and :ref:`utils` available.
 
 
-Some common use-cases are covered in the :ref:`examples`
+Some common use-cases are covered in the :ref:`examples` (T.B.D)
 
 Indices and tables
 ==================
