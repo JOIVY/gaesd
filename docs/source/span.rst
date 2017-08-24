@@ -10,3 +10,4 @@ Sub spans have a parent_span_id.
 .. automodule:: gaesd.core.span
    :members:
    :inherited-members:
+   :special-members: __add__, __iadd__, __rshift__, __lshift__, __irshift__, __ilshift__

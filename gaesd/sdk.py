@@ -318,14 +318,24 @@ class SDK(Callable, MutableSequence):
         return self.dispatcher.patch_trace(trace)
 
     def __call__(self):
+        """
+        Call the dispatcher.
+
+        :return: Whatever the dispatcher returns.
+        """
         return self.dispatcher()
 
     def __len__(self):
+        """
+        The number of traces in this sdk instance.
+
+        :rtype: int
+        """
         return len(self._context.traces)
 
     def __add__(self, other):
         """
-        Add a trace to the current SDK context context.
+        Add a trace to the current SDK's context.
         or
         Add a span to the current trace (with side effects).
         """
@@ -342,6 +352,10 @@ class SDK(Callable, MutableSequence):
                 'Expecting type Trace or Span but got {t}'.format(t=other))
 
     def __iadd__(self, other):  # pragma: no cover
+        """
+        :see: `__add__`
+        :rtype: SDK
+        """
         operator.add(self, other)
         return self
 
@@ -352,13 +366,31 @@ class SDK(Callable, MutableSequence):
         pass
 
     def __iter__(self):
+        """
+        Iterate over all traces within this sdk instance
+
+        :rtype: Trace
+        """
         for trace in self._context.traces:
             yield trace
 
     def __getitem__(self, item):
+        """
+        Get the item from this sdks traces.
+
+        :rtype: Trace
+        """
         return self._context.traces[item]
 
     def __contains__(self, item):
+        """
+        Determine if the trace is present in this SDK's traces.
+        OR
+        Determine if the span is present in any of this SDK's traces.
+
+        :type item: Union[Trace, Span]
+        :rtype: bool
+        """
         if isinstance(item, Trace):
             return item in self._context.traces
         elif isinstance(item, Span):
@@ -369,11 +401,25 @@ class SDK(Callable, MutableSequence):
         return False
 
     def __setitem__(self, index, value):
+        """
+        Insert the trace into this SDK's trace list at the given index.
+
+        :param index: index to insert into
+        :type index: int
+        :param value: Trace to insert
+        :type value: Trace
+        """
         if not isinstance(value, Trace):
             raise TypeError('Can only set item of type=Trace')
         self._context.traces[index] = value
 
     def __delitem__(self, index):
+        """
+        Delete the trace from the SDK's trace list at the given index.
+
+        :param index: index to delete from
+        :type index: int
+        """
         del self._context.traces[index]
 
     def insert(self, index, value):

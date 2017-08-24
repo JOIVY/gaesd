@@ -20,7 +20,7 @@ __all__ = ['Trace']
 
 class Trace(MutableSequence):
     """
-    Representation of a StackDriver Trace object.
+    Representation of a StackDriver Trace object. Can be used as a context-manager.
     """
 
     def __init__(self, sdk, trace_id=None, root_span_id=None):
@@ -286,10 +286,19 @@ class Trace(MutableSequence):
         self._add_new_span_to_span_tree(other)
 
     def __iadd__(self, other):
+        """
+        :see: `__add__`
+        :rtype: Trace
+        """
         operator.add(self, other)
         return self
 
     def __len__(self):
+        """
+        The number of spans in this trace instance.
+
+        :rtype: int
+        """
         return len(self.spans)
 
     def __sub__(self, other):
@@ -308,10 +317,19 @@ class Trace(MutableSequence):
         self._remove_span_from_span_tree(other)
 
     def __isub__(self, other):
+        """
+        :see: `__sub__`
+        :rtype: Trace
+        """
         operator.sub(self, other)
         return self
 
     def __iter__(self):
+        """
+        Iterate over all spans within this trace instance
+
+        :rtype: Trace
+        """
         for span in self.spans:
             yield span
 
@@ -366,11 +384,25 @@ class Trace(MutableSequence):
         return TraceDecorators(self)
 
     def __setitem__(self, index, value):
+        """
+        Insert the span into this trace's list of spans.
+
+        :param index: index to insert into
+        :type index: int
+        :param value: Span to insert
+        :type value: Span
+        """
         if not isinstance(value, Span):
             raise TypeError('Can only insert item of type=Span')
         self._spans[index] = value
 
     def __delitem__(self, index):
+        """
+        Delete the span from this trace's list at the given index.
+
+        :param index: index to delete from
+        :type index: int
+        """
         del self._spans[index]
 
     def insert(self, index, value):

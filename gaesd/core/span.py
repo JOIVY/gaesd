@@ -27,7 +27,7 @@ class SpanKind(Enum):
 
 class Span(object):
     """
-    Representation of a StackDriver Span object.
+    Representation of a StackDriver Span object. Can be used as a context-manager.
     """
     _span_ids = itertools.count(1)
 
@@ -341,10 +341,20 @@ class Span(object):
         return self.trace.span(parent_span=self, **kwargs)
 
     def __add__(self, other):
+        """
+        Add a span to this span's associated trace instance.
+
+        :param other: The span to add
+        :type other: Span
+        """
         operator.add(self.trace, other)
         other.parent_span_id = self.span_id
 
     def __iadd__(self, other):
+        """
+        :see: `__add__`
+        :rtype: Span
+        """
         operator.add(self, other)
         return self
 
@@ -387,10 +397,18 @@ class Span(object):
             raise TypeError('{0} is not an instance of Span'.format(other))
 
     def __irshift__(self, other):
+        """
+        :see: `__rshift__`
+        :rtype: Span
+        """
         operator.rshift(self, other)
         return self
 
     def __ilshift__(self, other):
+        """
+        :see: `__lshift__`
+        :rtype: Span
+        """
         operator.lshift(self, other)
         return self
 
