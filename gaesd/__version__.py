@@ -11,7 +11,7 @@ __description__ = 'Capture and dispatch Stack-Driver compatible traces using ' \
                   'libraries under the hood and easily usable on AppEngine' \
                   'if these libraries are vendored-in.'
 __url__ = 'https://github.com/JOIVY/gaesd'
-__version__ = '0.6'
+__version__ = '0.7'
 __author__ = 'Francis Horsman'
 __author_email__ = 'francis.horsman@gmail.com'
 __license__ = 'MIT'
