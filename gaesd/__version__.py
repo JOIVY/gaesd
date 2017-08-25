@@ -12,7 +12,7 @@ __description__ = 'Capture and dispatch Stack-Driver compatible traces using ' \
                   'if these libraries are vendored-in. Documentation can be found here: ' \
                   'https://gaesd.readthedocs.io/en/latest/'
 __url__ = 'https://github.com/JOIVY/gaesd'
-__version__ = '0.7.2'
+__version__ = '0.7.3'
 __author__ = 'Francis Horsman'
 __author_email__ = 'francis.horsman@gmail.com'
 __license__ = 'MIT'

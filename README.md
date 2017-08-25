@@ -1,6 +1,18 @@
 
 **Python StackDriver SDK for AppEngine and non-AppEngine environments**
 
+[![Author](https://img.shields.io/badge/Author:%20francis%20horsman-Available-brightgreen.svg?style=plastic)](https://www.linkedin.com/in/francishorsman)
+<br>
+
+[![Build Status](https://travis-ci.org/JOIVY/gaesd.svg?branch=master)](https://travis-ci.org/JOIVY/gaesd)
+[![Coverage Status](https://coveralls.io/repos/github/JOIVY/gaesd/badge.svg)](https://coveralls.io/github/JOIVY/gaesd)
+[![Documentation Status](https://readthedocs.org/projects/gaesd/badge/?version=latest)](http://gaesd.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/gaesd.svg)](https://badge.fury.io/py/gaesd)
+[![PyPI](https://img.shields.io/pypi/l/gaesd.svg)]()
+[![PyPI](https://img.shields.io/pypi/wheel/gaesd.svg)]()
+[![PyPI](https://img.shields.io/pypi/pyversions/gaesd.svg)]()
+[![PyPI](https://img.shields.io/pypi/status/gaesd.svg)]()
+
 <br>
 <br>
 <u>WARNING</u>: <b>Sending traces to the StackDriver Trace API takes approx 
